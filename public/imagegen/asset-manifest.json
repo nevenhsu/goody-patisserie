@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "assetSpecVersion": 1,
+  "assets": [
+    {
+      "id": "cafe-reference-landscape",
+      "file": "/imagegen/goody-scene-cafe-landscape-v1.png",
+      "class": "scene-landscape",
+      "canvas": [1536, 1024],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [1536, 1024], "portrait": null }
+    },
+    {
+      "id": "cafe-reference-portrait",
+      "file": "/imagegen/goody-scene-cafe-portrait-v1.png",
+      "class": "scene-portrait",
+      "canvas": [1086, 1448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [1086, 1448] }
+    },
+    {
+      "id": "wall-left",
+      "file": "/imagegen/goody-wall-left-v1.png",
+      "class": "wall-panel",
+      "canvas": [512, 1024],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [281.6, 563.2], "portrait": [348.16, 696.32] }
+    },
+    {
+      "id": "wall-center",
+      "file": "/imagegen/goody-wall-center-v1.png",
+      "class": "wall-panel",
+      "canvas": [512, 1024],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [281.6, 563.2], "portrait": [348.16, 696.32] }
+    },
+    {
+      "id": "wall-right",
+      "file": "/imagegen/goody-wall-right-v1.png",
+      "class": "wall-panel",
+      "canvas": [512, 1024],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [281.6, 563.2], "portrait": [348.16, 696.32] }
+    },
+    {
+      "id": "fridge",
+      "file": "/imagegen/goody-appliance-fridge-v1.png",
+      "class": "appliance-tall",
+      "canvas": [384, 704],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [145.92, 267.52], "portrait": [161.28, 295.68] }
+    },
+    {
+      "id": "oven",
+      "file": "/imagegen/goody-appliance-oven-v1.png",
+      "class": "appliance-tall",
+      "canvas": [384, 704],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [134.4, 246.4], "portrait": [153.6, 281.6] }
+    },
+    {
+      "id": "counter-base",
+      "file": "/imagegen/goody-counter-base-v1.png",
+      "class": "counter-base",
+      "canvas": [1536, 384],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [1105.92, 276.48], "portrait": [1198.08, 299.52] }
+    },
+    {
+      "id": "counter-top",
+      "file": "/imagegen/goody-counter-top-v1.png",
+      "class": "counter-top",
+      "canvas": [1536, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [1105.92, 138.24], "portrait": [1198.08, 149.76] }
+    },
+    {
+      "id": "display-cabinet",
+      "file": "/imagegen/goody-display-cabinet-v1.png",
+      "class": "counter-display",
+      "canvas": [512, 384],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [332.8, 249.6], "portrait": [419.84, 314.88] }
+    },
+    {
+      "id": "oven-tray",
+      "file": "/imagegen/goody-item-oven-tray-v1.png",
+      "class": "tray-wide",
+      "canvas": [512, 256],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [143.36, 71.68], "portrait": [153.6, 76.8] }
+    },
+    {
+      "id": "pastry-pandan-pearl-sugar-choux",
+      "file": "/imagegen/goody-pastry-pandan-pearl-sugar-choux-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "pastry-pandan-thai-tea-saint-honore",
+      "file": "/imagegen/goody-pastry-pandan-thai-tea-saint-honore-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "pastry-pandan-thai-tea-saint-honore-6-inch",
+      "file": "/imagegen/goody-pastry-pandan-thai-tea-saint-honore-6-inch-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [42.24, 42.24], "portrait": [51.84, 51.84] }
+    },
+    {
+      "id": "pastry-pistachio-cherry-tart",
+      "file": "/imagegen/goody-pastry-pistachio-cherry-tart-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "pastry-muscat-white-wine",
+      "file": "/imagegen/goody-pastry-muscat-white-wine-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "pastry-pandan-thai-tea-cake-roll",
+      "file": "/imagegen/goody-pastry-pandan-thai-tea-cake-roll-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "pastry-vanilla-basque-cheesecake-slice",
+      "file": "/imagegen/goody-pastry-vanilla-basque-cheesecake-slice-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "pastry-vanilla-basque-cheesecake-6-inch",
+      "file": "/imagegen/goody-pastry-vanilla-basque-cheesecake-6-inch-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [42.24, 42.24], "portrait": [51.84, 51.84] }
+    },
+    {
+      "id": "pastry-pandan-madeleine-2-pack",
+      "file": "/imagegen/goody-pastry-pandan-madeleine-2-pack-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "pastry-pistachio-cherry-dacquoise",
+      "file": "/imagegen/goody-pastry-pistachio-cherry-dacquoise-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "pastry-vanilla-canele",
+      "file": "/imagegen/goody-pastry-vanilla-canele-v1.png",
+      "class": "pastry-small",
+      "canvas": [192, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "painting-tokyo",
+      "file": "/imagegen/goody-wall-art-tokyo-v1.png",
+      "class": "wall-art",
+      "canvas": [256, 320],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [51.2, 64], "portrait": [61.44, 76.8] }
+    },
+    {
+      "id": "painting-melbourne",
+      "file": "/imagegen/goody-wall-art-melbourne-v1.png",
+      "class": "wall-art",
+      "canvas": [256, 320],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [51.2, 64], "portrait": [61.44, 76.8] }
+    },
+    {
+      "id": "floor-tile",
+      "file": "/imagegen/goody-floor-tile-v1.png",
+      "class": "floor-tile",
+      "canvas": [512, 512],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [512, 512], "portrait": [604.16, 604.16] }
+    },
+    {
+      "id": "shopkeeper",
+      "file": "/imagegen/goody-character-shopkeeper-v1.png",
+      "class": "character-static",
+      "canvas": [512, 768],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [117.76, 176.64], "portrait": [138.24, 207.36] }
+    },
+    {
+      "id": "cat-sprite",
+      "file": "/imagegen/goody-animal-cat-v1.png",
+      "class": "animal-static",
+      "canvas": [512, 384],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [97.28, 72.96], "portrait": [112.64, 84.48] }
+    },
+    {
+      "id": "calendar-sprite",
+      "file": "/imagegen/goody-item-calendar-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [69.12, 80.64], "portrait": [76.8, 89.6] }
+    },
+    {
+      "id": "menu-board-sprite",
+      "file": "/imagegen/goody-item-menu-board-v1.png",
+      "class": "item-floor",
+      "canvas": [384, 512],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [92.16, 122.88], "portrait": [103.68, 138.24] }
+    },
+    {
+      "id": "rain-particle",
+      "file": "/imagegen/goody-weather-rain-particle-v1.png",
+      "class": "weather-particle",
+      "canvas": [64, 64],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [64, 64], "portrait": [64, 64] }
+    }
+  ]
+}

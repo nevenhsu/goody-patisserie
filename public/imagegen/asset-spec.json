@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "pixelArt": true,
+  "classes": {
+    "scene-landscape": { "canvas": [1536, 1024], "anchor": [0.5, 0.5] },
+    "scene-portrait": { "canvas": [1086, 1448], "anchor": [0.5, 0.5] },
+    "wall-panel": { "canvas": [512, 1024], "anchor": [0.5, 1] },
+    "appliance-tall": { "canvas": [384, 704], "anchor": [0.5, 1] },
+    "counter-base": { "canvas": [1536, 384], "anchor": [0.5, 1] },
+    "counter-top": { "canvas": [1536, 192], "anchor": [0.5, 1] },
+    "counter-display": { "canvas": [512, 384], "anchor": [0.5, 1] },
+    "tray-wide": { "canvas": [512, 256], "anchor": [0.5, 1] },
+    "pastry-small": { "canvas": [192, 192], "anchor": [0.5, 1] },
+    "wall-art": { "canvas": [256, 320], "anchor": [0.5, 0.5] },
+    "floor-tile": { "canvas": [512, 512], "anchor": [0.5, 0.5], "tileable": true },
+    "character-static": { "canvas": [512, 768], "anchor": [0.5, 1] },
+    "character-sheet-4x4": { "canvas": [1024, 1536], "frame": [256, 384], "grid": [4, 4], "anchor": [0.5, 1] },
+    "animal-static": { "canvas": [512, 384], "anchor": [0.5, 1] },
+    "item-wall": { "canvas": [384, 448], "anchor": [0.5, 0.5] },
+    "item-floor": { "canvas": [384, 512], "anchor": [0.5, 1] },
+    "weather-particle": { "canvas": [64, 64], "anchor": [0.5, 0.5] }
+  }
+}
