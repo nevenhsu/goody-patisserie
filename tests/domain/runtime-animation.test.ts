@@ -93,7 +93,11 @@ test("animation clips stay within the declared spritesheet frame count", () => {
 
 test("animations are spritesheet-only and spawn bindings reference known clips", () => {
   const nonSpritesheet = animatedExperience();
-  const imageAsset = nonSpritesheet.assets.find((candidate) => candidate.id === "shopkeeper");
+  nonSpritesheet.assets = [
+    ...nonSpritesheet.assets,
+    { id: "static-shopkeeper", kind: "character", loadType: "image", uri: "/imagegen/static-shopkeeper.png" },
+  ];
+  const imageAsset = nonSpritesheet.assets.find((candidate) => candidate.id === "static-shopkeeper");
   assert.ok(imageAsset);
   imageAsset.animations = [{ id: "idle", frames: [0], frameRate: 8 }];
   const nonSpritesheetResult = validateRuntimeExperience(nonSpritesheet);

@@ -23,7 +23,7 @@ async function releasedExperience(id = "release-2026-07", version = "2026.07.1")
   return value;
 }
 
-test("runtime experience validates full asset, spawn, action, interaction, and orientation contract", async () => {
+test("runtime experience validates desktop asset, spawn, interaction, and orientation contract", async () => {
   const value = copy(await getRuntimeExperience());
   value.assets = [
     ...value.assets,
@@ -45,12 +45,12 @@ test("runtime experience validates full asset, spawn, action, interaction, and o
 
   const result = validateRuntimeExperience(value);
   assert.equal(result.valid, true, JSON.stringify(result.issues));
-  assert.deepEqual(new Set(value.assets.map((asset) => asset.kind)), new Set(["scene", "character", "weather", "item", "animal"]));
+  assert.deepEqual(new Set(value.assets.map((asset) => asset.kind)), new Set(["scene", "character", "item", "animal"]));
   assert.deepEqual(new Set(value.assets.map((asset) => asset.loadType)), new Set(["image", "spritesheet", "atlas"]));
-  assert.deepEqual(new Set(value.layouts.landscape.placements.map((placement) => placement.layer)), new Set(["background", "stage", "foreground", "weather"]));
+  assert.deepEqual(new Set(value.layouts.landscape.placements.map((placement) => placement.layer)), new Set(["background", "stage", "foreground"]));
   assert.ok(value.layouts.landscape.placements.filter((placement) => placement.layer === "background").length > 1);
   assert.equal(value.spawns.characters.length > 0 && value.spawns.animals.length > 0 && value.spawns.items.length > 0, true);
-  assert.deepEqual(new Set(value.actions.map((action) => action.type)), new Set(["tween", "particle-loop"]));
+  assert.deepEqual(value.actions, []);
 });
 
 test("released content can keep a container separate from swappable pastry content", async () => {
@@ -95,39 +95,35 @@ test("spawn placements may select a layout-specific asset of the same kind", asy
   placement.assetId = "missing-layout-specific-asset";
   assert.equal(validateRuntimeExperience(value).valid, false);
 
-  placement.assetId = "cafe-reference-landscape";
+  placement.assetId = "concept-wall-center";
   assert.equal(validateRuntimeExperience(value).valid, false);
 });
 
-test("demo composes empty containers, wall art, and eleven swappable pastry assets", async () => {
+test("desktop demo composes an empty cabinet and eleven swappable pastry assets", async () => {
   const value = copy(await getRuntimeExperience());
   const assets = new Map(value.assets.map((asset) => [asset.id, asset]));
   const itemSpawns = new Map(value.spawns.items.map((spawn) => [spawn.id, spawn]));
   const pastryFiles = {
-    "pandan-pearl-sugar-choux": "goody-pastry-pandan-pearl-sugar-choux-v1.png",
-    "pandan-thai-tea-saint-honore": "goody-pastry-pandan-thai-tea-saint-honore-v1.png",
-    "pandan-thai-tea-saint-honore-6-inch": "goody-pastry-pandan-thai-tea-saint-honore-6-inch-v1.png",
-    "pistachio-cherry-tart": "goody-pastry-pistachio-cherry-tart-v1.png",
-    "muscat-white-wine": "goody-pastry-muscat-white-wine-v1.png",
-    "pandan-thai-tea-cake-roll": "goody-pastry-pandan-thai-tea-cake-roll-v1.png",
-    "vanilla-basque-cheesecake-slice": "goody-pastry-vanilla-basque-cheesecake-slice-v1.png",
-    "vanilla-basque-cheesecake-6-inch": "goody-pastry-vanilla-basque-cheesecake-6-inch-v1.png",
-    "pandan-madeleine-2-pack": "goody-pastry-pandan-madeleine-2-pack-v1.png",
-    "pistachio-cherry-dacquoise": "goody-pastry-pistachio-cherry-dacquoise-v1.png",
-    "vanilla-canele": "goody-pastry-vanilla-canele-v1.png",
+    "pandan-pearl-sugar-choux": "goody-pastry-pandan-pearl-sugar-choux-landscape-v2.png",
+    "pandan-thai-tea-saint-honore": "goody-pastry-pandan-thai-tea-saint-honore-landscape-v2.png",
+    "pandan-thai-tea-saint-honore-6-inch": "goody-pastry-pandan-thai-tea-saint-honore-6-inch-landscape-v2.png",
+    "pistachio-cherry-tart": "goody-pastry-pistachio-cherry-tart-landscape-v2.png",
+    "muscat-white-wine": "goody-pastry-muscat-white-wine-landscape-v2.png",
+    "pandan-thai-tea-cake-roll": "goody-pastry-pandan-thai-tea-cake-roll-landscape-v2.png",
+    "vanilla-basque-cheesecake-slice": "goody-pastry-vanilla-basque-cheesecake-slice-landscape-v2.png",
+    "vanilla-basque-cheesecake-6-inch": "goody-pastry-vanilla-basque-cheesecake-6-inch-landscape-v2.png",
+    "pandan-madeleine-2-pack": "goody-pastry-pandan-madeleine-2-pack-landscape-v2.png",
+    "pistachio-cherry-dacquoise": "goody-pastry-pistachio-cherry-dacquoise-landscape-v2.png",
+    "vanilla-canele": "goody-pastry-vanilla-canele-landscape-v2.png",
   } as const;
 
-  assert.equal(assets.get("display-cabinet")?.uri, "/imagegen/goody-display-cabinet-v1.png");
+  assert.equal(assets.get("concept-display-cabinet")?.uri, "/imagegen/goody-counter-display-concept-v1.png");
   assert.equal(assets.get("oven-tray")?.uri, "/imagegen/goody-item-oven-tray-v1.png");
-  assert.equal(assets.get("painting-tokyo")?.uri, "/imagegen/goody-wall-art-tokyo-v1.png");
-  assert.equal(assets.get("painting-melbourne")?.uri, "/imagegen/goody-wall-art-melbourne-v1.png");
   for (const [pastryId, file] of Object.entries(pastryFiles)) {
     const spawn = itemSpawns.get(pastryId);
     assert.ok(spawn, `missing pastry spawn: ${pastryId}`);
     assert.equal(assets.get(spawn.assetId)?.uri, `/imagegen/${file}`);
-    for (const orientation of ["landscape", "portrait"] as const) {
-      assert.ok(value.layouts[orientation].placements.some((placement) => placement.type === "spawn" && placement.spawnId === pastryId));
-    }
+    assert.ok(value.layouts.landscape.placements.some((placement) => placement.type === "spawn" && placement.spawnId === pastryId));
   }
 
   const cabinetBefore = value.layouts.landscape.placements.find((placement) => placement.id === "land-display-cabinet");
@@ -183,10 +179,13 @@ test("runtime validation rejects dangling refs, bad normalized values, target mi
       ? { ...placement, assetId: "missing-asset", position: { x: 1.2, y: 0.5 } }
       : placement,
   );
+  value.actions = [
+    { id: "wrong-target", type: "tween", targetId: "calendar", property: "y", from: 0, to: 0.1, durationMs: 100 },
+  ];
   value.spawns = {
     ...value.spawns,
     animals: value.spawns.animals.map((spawn, index) =>
-      index === 0 ? { ...spawn, actionIds: ["rain-loop"] } : spawn,
+      index === 0 ? { ...spawn, actionIds: ["wrong-target"] } : spawn,
     ),
   };
   value.interactions = value.interactions.map((interaction, index) =>

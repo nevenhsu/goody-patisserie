@@ -14,7 +14,6 @@ import {
   getWeatherParticleAction,
   placementAssetId,
   resolveTweenRange,
-  shouldRenderPlacementImage,
 } from "../../src/game/scene.ts";
 import { getViewportCamera } from "../../src/game/viewport.ts";
 import { getDemoRuntimeExperience } from "../../src/runtime/demo.ts";
@@ -64,6 +63,29 @@ test("demo assets are shipped and match the delivery manifest", () => {
   }
 });
 
+test("every delivered demo asset is visible in the desktop render graph", () => {
+  const experience = getDemoRuntimeExperience();
+  const spawns = new Map([
+    ...experience.spawns.characters,
+    ...experience.spawns.animals,
+    ...experience.spawns.items,
+  ].map((spawn) => [spawn.id, spawn]));
+  const visibleAssetIds = new Set();
+
+  for (const placement of experience.layouts.landscape.placements) {
+    if (placement.layer === "weather") continue;
+    const assetId = placementAssetId(placement, spawns);
+    if (assetId) visibleAssetIds.add(assetId);
+  }
+  visibleAssetIds.add(spawns.get(experience.layouts.landscape.player.spawnId)?.assetId);
+  const weatherAction = getWeatherParticleAction(experience);
+  if (weatherAction) visibleAssetIds.add(weatherAction.assetId);
+  visibleAssetIds.delete(undefined);
+
+  assert.equal(visibleAssetIds.size, 34);
+  assert.deepEqual(visibleAssetIds, new Set(experience.assets.map((asset) => asset.id)));
+});
+
 test("landscape layers contain transparent and visible pixels", async () => {
   const manifest = JSON.parse(readFileSync(`${projectRoot}public/imagegen/asset-manifest.json`, "utf8"));
   const layers = manifest.assets.filter((entry) => entry.class === "scene-landscape-layer");
@@ -81,10 +103,9 @@ test("landscape layers contain transparent and visible pixels", async () => {
   }
 });
 
-test("desktop weekly menu uses a paper clipboard while portrait keeps the floor board", async () => {
+test("desktop weekly menu uses a paper clipboard", async () => {
   const experience = getDemoRuntimeExperience();
   const landscapeMenu = experience.layouts.landscape.placements.find((placement) => placement.id === "land-menu");
-  const portraitMenu = experience.layouts.portrait.placements.find((placement) => placement.id === "port-menu");
   const spawns = new Map(experience.spawns.items.map((spawn) => [spawn.id, spawn]));
 
   assert.deepEqual(landscapeMenu, {
@@ -97,17 +118,7 @@ test("desktop weekly menu uses a paper clipboard while portrait keeps the floor 
     scale: 0.18,
     depth: 36,
   });
-  assert.deepEqual(portraitMenu, {
-    id: "port-menu",
-    type: "spawn",
-    spawnId: "menu-board",
-    layer: "foreground",
-    position: { x: 0.2, y: 0.6 },
-    scale: 0.27,
-    depth: 42,
-  });
   assert.equal(placementAssetId(landscapeMenu, spawns), "menu-clipboard-landscape");
-  assert.equal(placementAssetId(portraitMenu, spawns), "menu-board-sprite");
 
   const file = `${projectRoot}public/imagegen/goody-item-menu-clipboard-landscape-v1.png`;
   const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -342,7 +353,6 @@ test("desktop concept scene keeps exact structure, replaceable content, and dept
     "land-pandan-pearl-sugar-choux",
     "land-stool-1",
     "land-cat",
-    "land-rain",
   ].map((id) => [id, byId.get(id)?.depth]));
   assert.deepEqual(depths, {
     "land-oven": 9,
@@ -355,7 +365,6 @@ test("desktop concept scene keeps exact structure, replaceable content, and dept
     "land-pandan-pearl-sugar-choux": 34,
     "land-stool-1": 40,
     "land-cat": 52,
-    "land-rain": 100,
   });
 
   assert.deepEqual(landscape.projections.map((projection) => projection.id), ["wall-left", "wall-right", "floor"]);
@@ -530,39 +539,19 @@ test("desktop concept scene keeps exact structure, replaceable content, and dept
   );
 
   assert.deepEqual(experience.layouts.portrait.player, {
-    spawnId: "player-portrait",
+    spawnId: "player-landscape",
     position: { x: 0.5, y: 0.79 },
     movementBounds: { minX: 0.12, maxX: 0.88, minY: 0.64, maxY: 0.89 },
     scale: 0.27,
     depth: 50,
   });
-  assert.equal(
-    experience.layouts.portrait.placements.find((placement) => placement.id === "port-cat")?.scale,
-    0.22,
-  );
-  assert.equal(
-    experience.layouts.portrait.placements.some(
-      (placement) => placement.type === "asset" && placement.assetId.startsWith("concept-"),
-    ),
-    false,
-  );
   assert.deepEqual(
-    pastrySpawnIds.map((spawnId) => experience.layouts.portrait.placements.find(
-      (placement) => placement.type === "spawn" && placement.spawnId === spawnId,
-    )?.scale),
-    [0.22, 0.22, 0.27, 0.22, 0.22, 0.22, 0.22, 0.27, 0.22, 0.22, 0.22],
+    experience.layouts.portrait.placements.map((placement) => placement.id),
+    ["port-wall", "port-floor", "port-counter"],
   );
-  const portraitPastries = pastrySpawnIds.map((spawnId) => experience.layouts.portrait.placements.find(
-    (placement) => placement.type === "spawn" && placement.spawnId === spawnId,
-  ));
-  assert.equal(portraitPastries.every((placement) => placement?.assetId === undefined), true);
   assert.deepEqual(
     landscapePastries.map((placement) => placementAssetId(placement, spawnMap)),
     pastrySpawnIds.map((spawnId) => `pastry-${spawnId}-landscape-v2`),
-  );
-  assert.deepEqual(
-    portraitPastries.map((placement) => placementAssetId(placement, spawnMap)),
-    pastrySpawnIds.map((spawnId) => `pastry-${spawnId}`),
   );
 });
 
@@ -598,8 +587,8 @@ test("desktop character and animal use generic eight-frame spritesheet clips", (
   assert.deepEqual(catAsset?.animations?.[0]?.frames, [0, 1, 2, 3, 4, 5, 6, 7]);
   assert.equal(getRuntimeAnimationKey("shopkeeper-animated", "idle"), "goody-runtime-shopkeeper-animated-idle");
 
-  assert.equal(spawns.get("player-portrait")?.assetId, "shopkeeper");
-  assert.equal(spawns.get("cat-portrait")?.assetId, "cat-sprite");
+  assert.equal(spawns.has("player-portrait"), false);
+  assert.equal(spawns.has("cat-portrait"), false);
 });
 
 test("interaction mapping returns typed modal action for arbitrary content target", () => {
@@ -642,18 +631,17 @@ test("renderer accepts released assets without a demo ID allowlist", () => {
   assert.equal(assetIds.has("content-added-clickable-item"), true);
 });
 
-test("weather placement is an emitter anchor, not a static image", () => {
+test("desktop demo ships no inactive weather image", () => {
   const experience = getDemoRuntimeExperience();
   const weatherPlacements = experience.layouts.landscape.placements.filter(
     (placement) => placement.layer === "weather",
   );
 
-  assert.ok(weatherPlacements.length > 0);
-  assert.equal(weatherPlacements.every((placement) => !shouldRenderPlacementImage(placement)), true);
+  assert.deepEqual(weatherPlacements, []);
   assert.equal(getWeatherParticleAction(experience), undefined);
 
   experience.weather.defaultTone = "rain";
-  assert.equal(getWeatherParticleAction(experience)?.id, "rain-loop");
+  assert.equal(getWeatherParticleAction(experience), undefined);
 });
 
 test("bridge carries discrete input gate and modal events in order", () => {

@@ -17,13 +17,6 @@ const assets = [
     angle: -11.2310028339,
   },
   {
-    input: "side-mold-pair-chroma.png",
-    output: "goody-side-prop-left-mold-pair-perspective-v1.png",
-    width: 220,
-    height: 170,
-    angle: -14.8292140042,
-  },
-  {
     input: "side-frame-upper-chroma.png",
     output: "goody-side-prop-right-tokyo-frame-perspective-v1.png",
     width: 160,

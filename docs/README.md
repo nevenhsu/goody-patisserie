@@ -9,6 +9,7 @@
 | 架構、runtime、scene、內容替換、互動、排程與 release contract | [`GOODY-2D-PLATFORM.md`](GOODY-2D-PLATFORM.md) |
 | runtime image class、canvas、anchor 與版本規則 | [`GOODY-ASSET-CLASSES.md`](GOODY-ASSET-CLASSES.md)；尺寸機器來源是 `public/imagegen/asset-spec.json` |
 | 8-bit 素材生成、處理、命名與交付 | [`GOODY-8BIT-ART-WORKFLOW.md`](GOODY-8BIT-ART-WORKFLOW.md) |
+| mobile/portrait continuation 與 generated-asset handoff | [`GOODY-MOBILE-SCENE-HANDOFF.md`](GOODY-MOBILE-SCENE-HANDOFF.md) |
 | CMS asset library、場景與內容編輯、草稿、驗證、發布及管理權限 | [`GOODY-ADMIN-ASSET-MANAGEMENT.md`](GOODY-ADMIN-ASSET-MANAGEMENT.md) |
 
 ## 來源優先序

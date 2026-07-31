@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 const root = fileURLToPath(new URL("../../public/imagegen/", import.meta.url));
+const sourceRoot = fileURLToPath(new URL("../../.codex-art-staging/animation-sources/", import.meta.url));
 
 async function rawImage(path, extract) {
   let image = sharp(path).ensureAlpha();
@@ -39,7 +40,7 @@ function rgbaPalette(data, channels) {
 }
 
 async function assertSourcePreservingSheet({ sourceName, sheetName, width, height, splitY }) {
-  const sourcePath = `${root}${sourceName}`;
+  const sourcePath = `${sourceRoot}${sourceName}`;
   const sheetPath = `${root}${sheetName}`;
   const source = await rawImage(sourcePath);
   const metadata = await sharp(sheetPath).metadata();
