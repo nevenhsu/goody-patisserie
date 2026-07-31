@@ -40,6 +40,10 @@ Immutable released manifest 是 runtime source of truth。Draft authoring collec
 
 Runtime asset URLs 目前使用 `/imagegen/...`。未來 S3/R2 工作只修改 URI adapter 或 manifest values，不修改 Phaser interpreter。
 
+目前 runtime schema version 3 可在 orientation layout 宣告 `projective-quad` profile。桌機側牆使用單一 local plane；`horizontalGuides` 為同一 plane 增加共享橫向控制列，牆底材質與牆上物件都走同一 mapping，避免素材先烘焙透視後又被二次投影。正視地板材質則由獨立 floor mesh 產生透視。Projective placement 不接受 spritesheet；動畫角色仍使用一般 sprite placement。
+
+Projective scene 需要 WebGL。Client 明確以 Phaser WebGL renderer 啟動；裝置不支援 WebGL 時顯示啟動錯誤，不得靜默退回無法繪製 Mesh2D 的 Canvas renderer。
+
 Payload lookup 順序：
 
 1. 讀取 `site-settings.defaultReleaseKey`。

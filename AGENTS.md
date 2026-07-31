@@ -3,6 +3,10 @@
 所有架構、runtime、CMS、scene、asset 工作，先閱讀
 [`docs/README.md`](docs/README.md)；該文件是唯一文件入口，並說明各文件角色與來源優先序。
 
+## 研究工具
+
+- 研究工作優先使用 browser 開啟 ChatGPT Pro 的 `8-bit website project`，把研究題目交給 GPT Pro 進行研究；採用研究結果前，仍須依本專案原始碼與文件驗證。
+
 ## Runtime 硬性規則
 
 - `/` 提供唯一公開的全視窗、持續循環 8-bit 體驗；桌面與行動版都必須覆蓋視窗且不拉伸素材。

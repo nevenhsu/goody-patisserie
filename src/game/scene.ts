@@ -5,9 +5,19 @@ import type {
   RuntimeOrientationLayout,
   RuntimePlacement,
   RuntimeSpawn,
+  RuntimeSpawnAnimationBinding,
   TweenRuntimeAction,
 } from "../content/runtime-experience";
 import type { GameBridge, GameInteractionDetail, MoveDirection } from "./bridge";
+import {
+  buildClippedProjectiveSurfaceGeometry,
+  buildProjectiveMeshGeometry,
+  getProjectiveUnderlayPolygon,
+  getProjectiveSurfaceRows,
+  mapProjectivePoint,
+  type ProjectivePoint,
+  type ProjectiveProfileLike,
+} from "./projective-surface";
 import { getViewportCamera } from "./viewport";
 
 /* Phaser stays client-only; this interpreter intentionally uses its runtime shape. */
@@ -15,19 +25,27 @@ import { getViewportCamera } from "./viewport";
 
 type SceneContext = {
   add: any;
+  anims: any;
   cameras: any;
   events: any;
   input: any;
   load: any;
   scale: any;
+  textures: any;
   tweens: any;
 };
 
 type SceneOptions = { reducedMotion?: boolean };
 type DisplayRecord = { object: any; base: { x: number; y: number; scale: number; alpha: number; rotation: number } };
+type RuntimeAnimationRegistration = { users: number; owned: boolean };
+const runtimeAnimationRegistrations = new WeakMap<object, Map<string, RuntimeAnimationRegistration>>();
 
 export function getRuntimeAssetKey(id: string) {
   return `goody-runtime-${id}`;
+}
+
+export function getRuntimeAnimationKey(assetId: string, clipId: string) {
+  return `${getRuntimeAssetKey(assetId)}-${clipId}`;
 }
 
 export function getRenderableAssetIds(experience: RuntimeExperience) {
@@ -81,8 +99,8 @@ function allSpawns(experience: RuntimeExperience): RuntimeSpawn[] {
   return [...experience.spawns.characters, ...experience.spawns.animals, ...experience.spawns.items];
 }
 
-function placementAssetId(placement: RuntimePlacement, spawns: Map<string, RuntimeSpawn>) {
-  return placement.type === "asset" ? placement.assetId : spawns.get(placement.spawnId)?.assetId;
+export function placementAssetId(placement: RuntimePlacement, spawns: Map<string, RuntimeSpawn>) {
+  return placement.type === "asset" ? placement.assetId : placement.assetId ?? spawns.get(placement.spawnId)?.assetId;
 }
 
 function normalizedDistance(a: { x: number; y: number }, b: { x: number; y: number }, layout: RuntimeOrientationLayout) {
@@ -96,6 +114,7 @@ export function createRuntimeExperienceScene(
 ) {
   const movement: Record<MoveDirection, boolean> = { up: false, down: false, left: false, right: false };
   const spawns = new Map(allSpawns(experience).map((spawn) => [spawn.id, spawn]));
+  const assets = new Map(experience.assets.map((asset) => [asset.id, asset]));
   const loadedAssetIds = getRenderableAssetIds(experience);
   const clickTargets = new Set(
     experience.interactions.flatMap((interaction) =>
@@ -103,7 +122,10 @@ export function createRuntimeExperienceScene(
     ),
   );
   const objects = new Set<any>();
+  const animatedObjects = new Map<any, boolean>();
+  const registeredAnimationKeys = new Set<string>();
   const activeTweens = new Set<any>();
+  const particleEmitters = new Set<any>();
   const targetObjects = new Map<string, DisplayRecord[]>();
   const interactiveObjects = new Map<string, any[]>();
   const bridgeStops: Array<() => void> = [];
@@ -111,12 +133,31 @@ export function createRuntimeExperienceScene(
   let layout = experience.layouts.landscape;
   let player = { x: 0, y: 0 };
   let playerObject: any = null;
+  let playerAnimation: RuntimeSpawnAnimationBinding | undefined;
+  let playerCurrentClip: string | undefined;
+  let playerLastMovementAt: number | null = null;
   let inputEnabled = bridge.isInputEnabled();
   let scaleListener: ((gameSize: { width: number; height: number }) => void) | null = null;
   let keyListener: ((event: KeyboardEvent) => void) | null = null;
 
   const clearMovement = () => {
     (Object.keys(movement) as MoveDirection[]).forEach((direction) => { movement[direction] = false; });
+  };
+
+  const pauseAnimations = () => {
+    animatedObjects.forEach((autoplay, object) => {
+      if (autoplay) object.anims?.pause?.();
+    });
+    activeTweens.forEach((tween) => tween.pause?.());
+    particleEmitters.forEach((emitter) => emitter.pause?.());
+  };
+
+  const resumeAnimations = () => {
+    animatedObjects.forEach((autoplay, object) => {
+      if (autoplay) object.anims?.resume?.();
+    });
+    activeTweens.forEach((tween) => tween.resume?.());
+    particleEmitters.forEach((emitter) => emitter.resume?.());
   };
 
   const setInputEnabled = (enabled: boolean) => {
@@ -127,6 +168,8 @@ export function createRuntimeExperienceScene(
       keyboard.enabled = enabled;
       keyboard.resetKeys?.();
     }
+    if (enabled) resumeAnimations();
+    else pauseAnimations();
   };
 
   const emitInteraction = (detail?: GameInteractionDetail) => {
@@ -142,11 +185,16 @@ export function createRuntimeExperienceScene(
       tween.destroy?.();
     });
     activeTweens.clear();
+    particleEmitters.clear();
     objects.forEach((object) => object.destroy?.());
     objects.clear();
+    animatedObjects.clear();
     targetObjects.clear();
     interactiveObjects.clear();
     playerObject = null;
+    playerAnimation = undefined;
+    playerCurrentClip = undefined;
+    playerLastMovementAt = null;
   };
 
   const trackObject = (object: any) => {
@@ -164,16 +212,192 @@ export function createRuntimeExperienceScene(
     targetObjects.set(targetId, records);
   };
 
-  const addImage = (assetId: string, placement: RuntimePlacement) => {
+  const registerAnimations = () => {
+    const currentScene = scene;
+    if (!currentScene?.anims) return;
+    experience.assets.forEach((asset) => {
+      if (asset.loadType !== "spritesheet" || !asset.animations) return;
+      asset.animations.forEach((clip) => {
+        const key = getRuntimeAnimationKey(asset.id, clip.id);
+        if (registeredAnimationKeys.has(key)) return;
+        const created = !currentScene.anims.exists?.(key);
+        if (created) {
+          currentScene.anims.create?.({
+            key,
+            frames: currentScene.anims.generateFrameNumbers(getRuntimeAssetKey(asset.id), { frames: [...clip.frames] }),
+            frameRate: clip.frameRate,
+            repeat: clip.repeat ?? 0,
+            repeatDelay: clip.repeatDelayMs ?? 0,
+            yoyo: clip.yoyo ?? false,
+          });
+        }
+        registeredAnimationKeys.add(key);
+        const registrations = runtimeAnimationRegistrations.get(currentScene.anims)
+          ?? new Map<string, RuntimeAnimationRegistration>();
+        const registration = registrations.get(key) ?? { users: 0, owned: created };
+        registration.users += 1;
+        registration.owned ||= created;
+        registrations.set(key, registration);
+        runtimeAnimationRegistrations.set(currentScene.anims, registrations);
+      });
+    });
+  };
+
+  const addImage = (assetId: string, placement: RuntimePlacement, animation?: RuntimeSpawnAnimationBinding) => {
     if (!scene) return null;
-    const object = trackObject(scene.add.image(
-      placement.position.x * layout.world.width,
-      placement.position.y * layout.world.height,
-      getRuntimeAssetKey(assetId),
-    ));
+    const asset = assets.get(assetId);
+    const object = trackObject(asset?.loadType === "spritesheet"
+      ? scene.add.sprite(
+        placement.position.x * layout.world.width,
+        placement.position.y * layout.world.height,
+        getRuntimeAssetKey(assetId),
+        0,
+      )
+      : scene.add.image(
+        placement.position.x * layout.world.width,
+        placement.position.y * layout.world.height,
+        getRuntimeAssetKey(assetId),
+      ));
     object.setOrigin(0.5).setScale(placement.scale).setDepth(placement.depth);
     object.setFlipX?.(Boolean(placement.flipX));
+    if (animation && asset?.loadType === "spritesheet") {
+      const clip = asset.animations?.find((candidate) => candidate.id === animation.defaultClip);
+      const key = clip ? getRuntimeAnimationKey(assetId, clip.id) : undefined;
+      const autoplay = animation.autoplay !== false;
+      animatedObjects.set(object, autoplay);
+      if (autoplay && key) object.anims?.play?.(key);
+    }
     return object;
+  };
+
+  const addMesh = (assetId: string, vertices: number[], indices: number[], depth: number) => {
+    if (!scene || typeof scene.add.mesh2d !== "function") return null;
+    try {
+      const object = trackObject(scene.add.mesh2d(0, 0, getRuntimeAssetKey(assetId), vertices, indices, true));
+      object.setDepth(depth);
+      object.buildOrderedIndices?.(0, true);
+      return object;
+    } catch {
+      return null;
+    }
+  };
+
+  const getTextureSize = (assetId: string) => {
+    if (!scene) return null;
+    const frame = scene.textures?.getFrame?.(getRuntimeAssetKey(assetId));
+    const width = frame?.realWidth ?? frame?.width;
+    const height = frame?.realHeight ?? frame?.height;
+    return Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0
+      ? { width, height }
+      : null;
+  };
+
+  const buildSurfaceGeometry = (
+    profile: ProjectiveProfileLike,
+    textureSize: { width: number; height: number },
+    sourceRect: { x: number; y: number; width: number; height: number },
+    corners?: readonly [ProjectivePoint, ProjectivePoint, ProjectivePoint, ProjectivePoint],
+  ) => {
+    const surface = corners ? { ...profile, corners, horizontalGuides: undefined } : profile;
+    const xSubdivisions = profile.subdivisions?.x ?? 1;
+    const localRows = getProjectiveSurfaceRows(surface);
+    if (!localRows) return null;
+    const vertices: number[] = [];
+    for (const localY of localRows) {
+      const v = localY / surface.localSize.height;
+      for (let column = 0; column <= xSubdivisions; column += 1) {
+        const u = column / xSubdivisions;
+        const mapped = mapProjectivePoint(surface, {
+          x: u * surface.localSize.width,
+          y: localY,
+        });
+        if (!mapped) return null;
+        vertices.push(
+          mapped.x,
+          mapped.y,
+          (sourceRect.x + u * sourceRect.width) / textureSize.width,
+          (sourceRect.y + v * sourceRect.height) / textureSize.height,
+        );
+      }
+    }
+    const indices: number[] = [];
+    const rowWidth = xSubdivisions + 1;
+    for (let row = 0; row < localRows.length - 1; row += 1) {
+      for (let column = 0; column < xSubdivisions; column += 1) {
+        const topLeft = row * rowWidth + column;
+        const topRight = topLeft + 1;
+        const bottomLeft = topLeft + rowWidth;
+        const bottomRight = bottomLeft + 1;
+        indices.push(topLeft, topRight, bottomRight, 0, topLeft, bottomRight, bottomLeft, 0);
+      }
+    }
+    return { vertices, indices };
+  };
+
+  const animationForPlacement = (placement: RuntimePlacement) =>
+    placement.type === "spawn" ? spawns.get(placement.spawnId)?.animation : undefined;
+
+  const addProjectedImage = (assetId: string, placement: RuntimePlacement) => {
+    const animation = animationForPlacement(placement);
+    if (assets.get(assetId)?.loadType === "spritesheet") return addImage(assetId, placement, animation);
+    if (!placement.projection) return addImage(assetId, placement, animation);
+    const profile = layout.projections.find((candidate) => candidate.id === placement.projection?.ref);
+    const textureSize = getTextureSize(assetId);
+    if (!profile || !textureSize) return addImage(assetId, placement, animation);
+
+    if (placement.projection.mode === "project") {
+      const geometry = buildProjectiveMeshGeometry({
+        profile,
+        localPosition: placement.projection.localPosition,
+        frame: textureSize,
+        scale: placement.scale,
+        strength: placement.projection.strength,
+        flipX: placement.flipX,
+      });
+      return geometry
+        ? addMesh(assetId, geometry.vertices, geometry.indices, placement.depth) ?? addImage(assetId, placement, animation)
+        : addImage(assetId, placement, animation);
+    }
+
+    if (placement.projection.mode === "clip" && placement.projection.clipPolygon) {
+      const geometry = buildClippedProjectiveSurfaceGeometry({
+        profile,
+        clipPolygon: placement.projection.clipPolygon,
+        uvInsetX: placement.projection.uvInsetX,
+      });
+      if (!geometry) return addImage(assetId, placement, animation);
+      const vertices = [...geometry.vertices];
+      for (let index = 0; index < vertices.length; index += 4) {
+        vertices[index + 2] = (
+          placement.projection.sourceRect.x + vertices[index + 2] * placement.projection.sourceRect.width
+        ) / textureSize.width;
+        vertices[index + 3] = (
+          placement.projection.sourceRect.y + vertices[index + 3] * placement.projection.sourceRect.height
+        ) / textureSize.height;
+      }
+      return addMesh(assetId, vertices, geometry.indices, placement.depth) ?? addImage(assetId, placement, animation);
+    }
+
+    let corners: readonly [ProjectivePoint, ProjectivePoint, ProjectivePoint, ProjectivePoint] | undefined;
+    if (placement.projection.mode === "underlay") {
+      const polygon = getProjectiveUnderlayPolygon(profile, placement.projection.edgeY);
+      if (!polygon || polygon.length !== 4) return addImage(assetId, placement, animation);
+      corners = polygon as unknown as readonly [ProjectivePoint, ProjectivePoint, ProjectivePoint, ProjectivePoint];
+    }
+    const geometry = buildSurfaceGeometry(profile, textureSize, placement.projection.sourceRect, corners);
+    return geometry
+      ? addMesh(assetId, geometry.vertices, geometry.indices, placement.depth) ?? addImage(assetId, placement, animation)
+      : addImage(assetId, placement, animation);
+  };
+
+  const playPlayerClip = (clipId: string, restart = false) => {
+    if (!playerObject || !playerAnimation || playerCurrentClip === clipId && !restart) return;
+    const playerSpawn = spawns.get(layout.player.spawnId);
+    if (!playerSpawn) return;
+    const key = getRuntimeAnimationKey(playerSpawn.assetId, clipId);
+    playerObject.anims?.play?.(key, restart);
+    animatedObjects.set(playerObject, true);
+    playerCurrentClip = clipId;
   };
 
   const startTween = (action: TweenRuntimeAction) => {
@@ -213,6 +437,7 @@ export function createRuntimeExperienceScene(
       frequency: action.frequencyMs * (options.reducedMotion ? 3 : 1),
       quantity: 1,
     }));
+    particleEmitters.add(emitter);
     emitter.setDepth?.(placement?.depth ?? 1000);
   };
 
@@ -267,6 +492,7 @@ export function createRuntimeExperienceScene(
     scene.cameras.main.setRoundPixels?.(true);
 
     destroyLayout();
+    registerAnimations();
     const hasComposedBackground = layout.placements.some((placement) => {
       const assetId = placementAssetId(placement, spawns);
       return placement.layer === "background" && Boolean(assetId && loadedAssetIds.has(assetId));
@@ -283,7 +509,7 @@ export function createRuntimeExperienceScene(
     [...layout.placements].sort((a, b) => a.depth - b.depth).forEach((placement) => {
       const assetId = placementAssetId(placement, spawns);
       if (!assetId || !loadedAssetIds.has(assetId) || !shouldRenderPlacementImage(placement)) return;
-      const object = addImage(assetId, placement);
+      const object = addProjectedImage(assetId, placement);
       if (!object || placement.type !== "spawn") return;
       addTargetObject(placement.spawnId, object, placement.scale);
       if (!clickTargets.has(placement.spawnId)) return;
@@ -296,11 +522,23 @@ export function createRuntimeExperienceScene(
 
     const playerSpawn = spawns.get(layout.player.spawnId);
     if (playerSpawn && loadedAssetIds.has(playerSpawn.assetId)) {
-      playerObject = trackObject(scene.add.image(player.x, player.y, getRuntimeAssetKey(playerSpawn.assetId)));
+      const playerAsset = assets.get(playerSpawn.assetId);
+      playerAnimation = playerSpawn.animation;
+      playerObject = trackObject(playerAsset?.loadType === "spritesheet"
+        ? scene.add.sprite(player.x, player.y, getRuntimeAssetKey(playerSpawn.assetId), 0)
+        : scene.add.image(player.x, player.y, getRuntimeAssetKey(playerSpawn.assetId)));
       playerObject.setOrigin(0.5).setScale(layout.player.scale).setDepth(layout.player.depth);
+      if (playerAnimation && playerAsset?.loadType === "spritesheet") {
+        const defaultClip = playerAsset.animations?.find((clip) => clip.id === playerAnimation?.defaultClip);
+        const autoplay = playerAnimation.autoplay !== false;
+        animatedObjects.set(playerObject, autoplay);
+        playerCurrentClip = defaultClip?.id;
+        if (autoplay && defaultClip) playerObject.anims?.play?.(getRuntimeAnimationKey(playerSpawn.assetId, defaultClip.id));
+      }
       addTargetObject(playerSpawn.id, playerObject, layout.player.scale);
     }
     startActions();
+    if (!inputEnabled) pauseAnimations();
   };
 
   const triggerNearest = () => {
@@ -363,6 +601,17 @@ export function createRuntimeExperienceScene(
       this.scale.on("resize", scaleListener);
       const stop = () => {
         destroyLayout();
+        const registrations = scene?.anims ? runtimeAnimationRegistrations.get(scene.anims) : undefined;
+        registeredAnimationKeys.forEach((key) => {
+          const registration = registrations?.get(key);
+          if (!registration) return;
+          registration.users -= 1;
+          if (registration.users > 0) return;
+          registrations?.delete(key);
+          if (registration.owned) scene?.anims?.remove?.(key);
+        });
+        if (scene?.anims && registrations?.size === 0) runtimeAnimationRegistrations.delete(scene.anims);
+        registeredAnimationKeys.clear();
         clearMovement();
         bridgeStops.splice(0).forEach((unsubscribe) => unsubscribe());
         if (scaleListener) this.scale.off("resize", scaleListener);
@@ -375,7 +624,7 @@ export function createRuntimeExperienceScene(
       this.events.once("destroy", stop);
       (this as any).__goodyKeys = keys;
     },
-    update(this: SceneContext, _time: number, delta: number) {
+    update(this: SceneContext, time: number, delta: number) {
       if (!inputEnabled || !playerObject) return;
       const keys = (this as any).__goodyKeys as Record<string, { isDown?: boolean }> | undefined;
       if (!keys) return;
@@ -385,14 +634,36 @@ export function createRuntimeExperienceScene(
       const down = movement.down || keys.DOWN?.isDown || keys.S?.isDown;
       const dx = Number(right) - Number(left);
       const dy = Number(down) - Number(up);
-      if (!dx && !dy) return;
-      const length = Math.hypot(dx, dy) || 1;
-      const speed = Math.min(layout.world.width, layout.world.height) * 0.0002;
-      player.x += (dx / length) * speed * delta;
-      player.y += (dy / length) * speed * delta;
-      clampPlayer();
-      playerObject.setPosition(player.x, player.y);
-      if (dx) playerObject.setFlipX?.(dx < 0);
+      const before = { x: player.x, y: player.y };
+      if (dx || dy) {
+        const length = Math.hypot(dx, dy) || 1;
+        const speed = Math.min(layout.world.width, layout.world.height) * 0.0002;
+        player.x += (dx / length) * speed * delta;
+        player.y += (dy / length) * speed * delta;
+        clampPlayer();
+        playerObject.setPosition(player.x, player.y);
+      }
+      const actualDx = player.x - before.x;
+      const actualDy = player.y - before.y;
+      const actualDistance = Math.hypot(actualDx, actualDy);
+      if (playerAnimation) {
+        const threshold = playerAnimation.movementThreshold ?? 0;
+        if (actualDistance > threshold) {
+          playerLastMovementAt = time;
+          if (playerAnimation.movingClip) playPlayerClip(playerAnimation.movingClip);
+          if (playerAnimation.flipWithMovement !== false && actualDx !== 0) playerObject.setFlipX?.(actualDx < 0);
+        } else if (
+          playerAnimation.movingClip &&
+          playerAnimation.defaultClip !== playerAnimation.movingClip &&
+          playerCurrentClip === playerAnimation.movingClip &&
+          playerLastMovementAt !== null &&
+          time - playerLastMovementAt >= (playerAnimation.stopDelayMs ?? 120)
+        ) {
+          playPlayerClip(playerAnimation.defaultClip, true);
+        }
+      } else if (actualDx !== 0) {
+        playerObject.setFlipX?.(actualDx < 0);
+      }
     },
   };
 }

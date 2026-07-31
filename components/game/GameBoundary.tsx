@@ -108,9 +108,13 @@ export default function GameBoundary() {
         const phaserModule = await import("phaser");
         if (disposed) return;
         const Phaser = (phaserModule as any).default ?? phaserModule;
+        const probe = document.createElement("canvas");
+        if (!probe.getContext("webgl2") && !probe.getContext("webgl")) {
+          throw new Error("此裝置不支援 WebGL，無法顯示 Goody 小店");
+        }
         const initial = viewportSize(mount);
         const game = new Phaser.Game({
-          type: Phaser.AUTO,
+          type: Phaser.WEBGL,
           width: initial.width,
           height: initial.height,
           parent: mount,

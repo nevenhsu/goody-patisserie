@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "assetSpecVersion": 1,
+  "assetSpecVersion": 5,
   "assets": [
     {
       "id": "cafe-reference-landscape",
@@ -17,6 +17,78 @@
       "canvas": [1086, 1448],
       "anchor": [0.5, 0.5],
       "intendedDisplay": { "landscape": null, "portrait": [1086, 1448] }
+    },
+    {
+      "id": "concept-side-wall-canonical-v2",
+      "file": "/imagegen/goody-side-wall-canonical-v2.png",
+      "class": "scene-projective-wall",
+      "canvas": [384, 1024],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [384, 1024], "portrait": null }
+    },
+    {
+      "id": "concept-floor-canonical-v2",
+      "file": "/imagegen/goody-floor-canonical-v2.png",
+      "class": "scene-projective-floor",
+      "canvas": [1536, 512],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [1536, 512], "portrait": null }
+    },
+    {
+      "id": "concept-floor-canonical-v3",
+      "file": "/imagegen/goody-floor-canonical-v3.png",
+      "class": "scene-projective-floor-16x8",
+      "canvas": [1536, 512],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [1536, 512], "portrait": null }
+    },
+    {
+      "id": "concept-side-prop-left-pan-pair-perspective",
+      "file": "/imagegen/goody-side-prop-left-pan-pair-perspective-v1.png",
+      "class": "side-prop-pan-pair-perspective",
+      "canvas": [220, 300],
+      "anchor": [0.5, 0.54],
+      "intendedDisplay": { "landscape": [132, 180], "portrait": null }
+    },
+    {
+      "id": "concept-side-prop-left-utensil-rail-perspective",
+      "file": "/imagegen/goody-side-prop-left-utensil-rail-perspective-v1.png",
+      "class": "side-prop-utensil-rail-perspective",
+      "canvas": [260, 250],
+      "anchor": [0.5, 0.56],
+      "intendedDisplay": { "landscape": [143, 137.5], "portrait": null }
+    },
+    {
+      "id": "concept-side-prop-left-magnetic-knife-rack-perspective",
+      "file": "/imagegen/goody-side-prop-left-magnetic-knife-rack-perspective-v1.png",
+      "class": "side-prop-magnetic-knife-rack-perspective",
+      "canvas": [220, 170],
+      "anchor": [0.5, 0.3411764706],
+      "intendedDisplay": { "landscape": [110, 85], "portrait": null }
+    },
+    {
+      "id": "concept-side-prop-right-tokyo-frame-perspective",
+      "file": "/imagegen/goody-side-prop-right-tokyo-frame-perspective-v1.png",
+      "class": "side-prop-frame-perspective",
+      "canvas": [160, 200],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [76.8, 96], "portrait": null }
+    },
+    {
+      "id": "concept-side-prop-right-melbourne-frame-perspective",
+      "file": "/imagegen/goody-side-prop-right-melbourne-frame-perspective-v1.png",
+      "class": "side-prop-frame-perspective",
+      "canvas": [160, 200],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [76.8, 96], "portrait": null }
+    },
+    {
+      "id": "concept-side-prop-right-plant-shelf-perspective",
+      "file": "/imagegen/goody-side-prop-right-plant-shelf-perspective-v1.png",
+      "class": "side-prop-plant-shelf-perspective",
+      "canvas": [300, 280],
+      "anchor": [0.5, 0.86],
+      "intendedDisplay": { "landscape": [135, 126], "portrait": null }
     },
     {
       "id": "wall-left",
@@ -96,7 +168,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+      "intendedDisplay": { "landscape": null, "portrait": [42.24, 42.24] }
     },
     {
       "id": "pastry-pandan-thai-tea-saint-honore",
@@ -104,7 +176,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+      "intendedDisplay": { "landscape": null, "portrait": [42.24, 42.24] }
     },
     {
       "id": "pastry-pandan-thai-tea-saint-honore-6-inch",
@@ -112,7 +184,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [42.24, 42.24], "portrait": [51.84, 51.84] }
+      "intendedDisplay": { "landscape": null, "portrait": [51.84, 51.84] }
     },
     {
       "id": "pastry-pistachio-cherry-tart",
@@ -120,7 +192,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+      "intendedDisplay": { "landscape": null, "portrait": [42.24, 42.24] }
     },
     {
       "id": "pastry-muscat-white-wine",
@@ -128,7 +200,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+      "intendedDisplay": { "landscape": null, "portrait": [42.24, 42.24] }
     },
     {
       "id": "pastry-pandan-thai-tea-cake-roll",
@@ -136,7 +208,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+      "intendedDisplay": { "landscape": null, "portrait": [42.24, 42.24] }
     },
     {
       "id": "pastry-vanilla-basque-cheesecake-slice",
@@ -144,7 +216,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+      "intendedDisplay": { "landscape": null, "portrait": [42.24, 42.24] }
     },
     {
       "id": "pastry-vanilla-basque-cheesecake-6-inch",
@@ -152,7 +224,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [42.24, 42.24], "portrait": [51.84, 51.84] }
+      "intendedDisplay": { "landscape": null, "portrait": [51.84, 51.84] }
     },
     {
       "id": "pastry-pandan-madeleine-2-pack",
@@ -160,7 +232,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+      "intendedDisplay": { "landscape": null, "portrait": [42.24, 42.24] }
     },
     {
       "id": "pastry-pistachio-cherry-dacquoise",
@@ -168,7 +240,7 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+      "intendedDisplay": { "landscape": null, "portrait": [42.24, 42.24] }
     },
     {
       "id": "pastry-vanilla-canele",
@@ -176,7 +248,95 @@
       "class": "pastry-small",
       "canvas": [192, 192],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [34.56, 34.56], "portrait": [42.24, 42.24] }
+      "intendedDisplay": { "landscape": null, "portrait": [42.24, 42.24] }
+    },
+    {
+      "id": "pastry-pandan-pearl-sugar-choux-landscape-v2",
+      "file": "/imagegen/goody-pastry-pandan-pearl-sugar-choux-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-pandan-thai-tea-saint-honore-landscape-v2",
+      "file": "/imagegen/goody-pastry-pandan-thai-tea-saint-honore-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-pandan-thai-tea-saint-honore-6-inch-landscape-v2",
+      "file": "/imagegen/goody-pastry-pandan-thai-tea-saint-honore-6-inch-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-pistachio-cherry-tart-landscape-v2",
+      "file": "/imagegen/goody-pastry-pistachio-cherry-tart-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-muscat-white-wine-landscape-v2",
+      "file": "/imagegen/goody-pastry-muscat-white-wine-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-pandan-thai-tea-cake-roll-landscape-v2",
+      "file": "/imagegen/goody-pastry-pandan-thai-tea-cake-roll-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-vanilla-basque-cheesecake-slice-landscape-v2",
+      "file": "/imagegen/goody-pastry-vanilla-basque-cheesecake-slice-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-vanilla-basque-cheesecake-6-inch-landscape-v2",
+      "file": "/imagegen/goody-pastry-vanilla-basque-cheesecake-6-inch-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-pandan-madeleine-2-pack-landscape-v2",
+      "file": "/imagegen/goody-pastry-pandan-madeleine-2-pack-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-pistachio-cherry-dacquoise-landscape-v2",
+      "file": "/imagegen/goody-pastry-pistachio-cherry-dacquoise-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
+    },
+    {
+      "id": "pastry-vanilla-canele-landscape-v2",
+      "file": "/imagegen/goody-pastry-vanilla-canele-landscape-v2.png",
+      "class": "pastry-display-256",
+      "canvas": [256, 256],
+      "anchor": [0.5, 0.859375],
+      "intendedDisplay": { "landscape": [87.04, 87.04] }
     },
     {
       "id": "painting-tokyo",
@@ -208,7 +368,17 @@
       "class": "character-static",
       "canvas": [512, 768],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [117.76, 176.64], "portrait": [138.24, 207.36] }
+      "intendedDisplay": { "landscape": null, "portrait": [138.24, 207.36] }
+    },
+    {
+      "id": "shopkeeper-animated",
+      "file": "/imagegen/goody-character-shopkeeper-8f-v1.png",
+      "class": "character-sheet-4x2-8",
+      "canvas": [2048, 1536],
+      "frame": [512, 768],
+      "frames": 8,
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [414.72, 622.08], "portrait": null }
     },
     {
       "id": "cat-sprite",
@@ -216,7 +386,17 @@
       "class": "animal-static",
       "canvas": [512, 384],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [97.28, 72.96], "portrait": [112.64, 84.48] }
+      "intendedDisplay": { "landscape": null, "portrait": [112.64, 84.48] }
+    },
+    {
+      "id": "cat-animated",
+      "file": "/imagegen/goody-animal-cat-8f-v1.png",
+      "class": "animal-sheet-4x2-8",
+      "canvas": [2048, 768],
+      "frame": [512, 384],
+      "frames": 8,
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [184.32, 138.24], "portrait": null }
     },
     {
       "id": "calendar-sprite",
@@ -232,7 +412,15 @@
       "class": "item-floor",
       "canvas": [384, 512],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [92.16, 122.88], "portrait": [103.68, 138.24] }
+      "intendedDisplay": { "landscape": [69.12, 92.16], "portrait": [103.68, 138.24] }
+    },
+    {
+      "id": "menu-clipboard-landscape",
+      "file": "/imagegen/goody-item-menu-clipboard-landscape-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [69.12, 80.64], "portrait": null }
     },
     {
       "id": "rain-particle",
@@ -241,6 +429,182 @@
       "canvas": [64, 64],
       "anchor": [0.5, 0.5],
       "intendedDisplay": { "landscape": [64, 64], "portrait": [64, 64] }
+    },
+    {
+      "id": "concept-wall-left",
+      "file": "/imagegen/goody-scene-landscape-concept-left-wall-v1.png",
+      "class": "scene-landscape-layer",
+      "canvas": [1536, 1024],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [1536, 1024], "portrait": null }
+    },
+    {
+      "id": "concept-wall-center",
+      "file": "/imagegen/goody-scene-landscape-concept-center-wall-v1.png",
+      "class": "scene-landscape-layer",
+      "canvas": [1536, 1024],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [1536, 1024], "portrait": null }
+    },
+    {
+      "id": "concept-wall-right",
+      "file": "/imagegen/goody-scene-landscape-concept-right-wall-v1.png",
+      "class": "scene-landscape-layer",
+      "canvas": [1536, 1024],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [1536, 1024], "portrait": null }
+    },
+    {
+      "id": "concept-floor",
+      "file": "/imagegen/goody-scene-landscape-concept-floor-v1.png",
+      "class": "scene-landscape-layer",
+      "canvas": [1536, 1024],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [1536, 1024], "portrait": null }
+    },
+    {
+      "id": "concept-fridge",
+      "file": "/imagegen/goody-appliance-fridge-concept-v1.png",
+      "class": "appliance-tall",
+      "canvas": [384, 704],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [384, 704], "portrait": null }
+    },
+    {
+      "id": "concept-oven",
+      "file": "/imagegen/goody-appliance-oven-concept-v1.png",
+      "class": "appliance-tall",
+      "canvas": [384, 704],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [307.2, 563.2], "portrait": null }
+    },
+    {
+      "id": "concept-counter-base",
+      "file": "/imagegen/goody-counter-base-concept-v1.png",
+      "class": "counter-base",
+      "canvas": [1536, 384],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [1536, 384], "portrait": null }
+    },
+    {
+      "id": "concept-counter-top",
+      "file": "/imagegen/goody-counter-top-concept-v1.png",
+      "class": "counter-top",
+      "canvas": [1536, 192],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [1536, 192], "portrait": null }
+    },
+    {
+      "id": "concept-display-cabinet",
+      "file": "/imagegen/goody-counter-display-concept-v1.png",
+      "class": "counter-display",
+      "canvas": [512, 384],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [512, 384], "portrait": null }
+    },
+    {
+      "id": "concept-stool",
+      "file": "/imagegen/goody-item-stool-concept-v1.png",
+      "class": "item-floor",
+      "canvas": [384, 512],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [188.16, 250.88], "portrait": null }
+    },
+    {
+      "id": "concept-mixer",
+      "file": "/imagegen/goody-item-mixer-concept-v1.png",
+      "class": "item-floor",
+      "canvas": [384, 512],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [192, 256], "portrait": null }
+    },
+    {
+      "id": "concept-oven-curtain",
+      "file": "/imagegen/goody-item-oven-curtain-concept-v1.png",
+      "class": "item-floor",
+      "canvas": [384, 512],
+      "anchor": [0.5, 1],
+      "intendedDisplay": { "landscape": [408.576, 544.768], "portrait": null }
+    },
+    {
+      "id": "concept-ceiling-fixture",
+      "file": "/imagegen/goody-item-ceiling-fixture-concept-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [460.8, 537.6], "portrait": null }
+    },
+    {
+      "id": "concept-copper-pan",
+      "file": "/imagegen/goody-item-copper-pan-concept-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [122.88, 143.36], "portrait": null }
+    },
+    {
+      "id": "concept-whisk",
+      "file": "/imagegen/goody-item-whisk-concept-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [122.88, 143.36], "portrait": null }
+    },
+    {
+      "id": "concept-rolling-pin",
+      "file": "/imagegen/goody-item-rolling-pin-concept-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [122.88, 143.36], "portrait": null }
+    },
+    {
+      "id": "concept-ladle",
+      "file": "/imagegen/goody-item-ladle-concept-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [122.88, 143.36], "portrait": null }
+    },
+    {
+      "id": "concept-utensil-rack",
+      "file": "/imagegen/goody-item-utensil-rack-concept-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [138.24, 161.28], "portrait": null }
+    },
+    {
+      "id": "concept-plant",
+      "file": "/imagegen/goody-item-plant-concept-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [115.2, 134.4], "portrait": null }
+    },
+    {
+      "id": "concept-wall-shelf",
+      "file": "/imagegen/goody-item-wall-shelf-concept-v1.png",
+      "class": "item-wall",
+      "canvas": [384, 448],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [115.2, 134.4], "portrait": null }
+    },
+    {
+      "id": "concept-wall-art-upper",
+      "file": "/imagegen/goody-wall-art-concept-upper-v1.png",
+      "class": "wall-art",
+      "canvas": [256, 320],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [81.92, 102.4], "portrait": null }
+    },
+    {
+      "id": "concept-wall-art-lower",
+      "file": "/imagegen/goody-wall-art-concept-lower-v1.png",
+      "class": "wall-art",
+      "canvas": [256, 320],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": [81.92, 102.4], "portrait": null }
     }
   ]
 }

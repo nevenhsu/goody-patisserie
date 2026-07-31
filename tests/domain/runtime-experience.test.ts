@@ -83,6 +83,22 @@ test("released content can keep a container separate from swappable pastry conte
   assert.equal(validateRuntimeExperience(value).valid, true);
 });
 
+test("spawn placements may select a layout-specific asset of the same kind", async () => {
+  const value = copy(await getRuntimeExperience());
+  const placement = value.layouts.landscape.placements.find(
+    (candidate) => candidate.id === "land-pandan-pearl-sugar-choux" && candidate.type === "spawn",
+  );
+  assert.ok(placement && placement.type === "spawn");
+  assert.equal(placement.assetId, "pastry-pandan-pearl-sugar-choux-landscape-v2");
+  assert.equal(validateRuntimeExperience(value).valid, true);
+
+  placement.assetId = "missing-layout-specific-asset";
+  assert.equal(validateRuntimeExperience(value).valid, false);
+
+  placement.assetId = "cafe-reference-landscape";
+  assert.equal(validateRuntimeExperience(value).valid, false);
+});
+
 test("demo composes empty containers, wall art, and eleven swappable pastry assets", async () => {
   const value = copy(await getRuntimeExperience());
   const assets = new Map(value.assets.map((asset) => [asset.id, asset]));
@@ -242,6 +258,6 @@ test("runtime source falls back to built-in demo when empty, invalid, or unavail
 
   for (const value of [empty, invalid, unavailable] satisfies RuntimeExperience[]) {
     assert.equal(value.mode, "demo");
-    assert.equal(value.schemaVersion, 2);
+    assert.equal(value.schemaVersion, 3);
   }
 });

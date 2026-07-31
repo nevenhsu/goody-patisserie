@@ -2,11 +2,13 @@ import {
   RUNTIME_EXPERIENCE_SCHEMA_VERSION,
   type RuntimeAction,
   type RuntimeAsset,
+  type RuntimeAnimationClip,
   type RuntimeAssetKind,
   type RuntimeExperience,
   type RuntimeModalPayload,
   type RuntimeOrientation,
   type RuntimeOrientationLayout,
+  type RuntimeProjectionProfile,
   type RuntimeSpawn,
   type RuntimeWeatherTone,
 } from "../content/runtime-experience";
@@ -76,17 +78,387 @@ function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-export function validateRuntimeExperience(value: unknown): RuntimeExperienceValidationResult {
+function validateAnimationClips(
+  rawAnimations: unknown,
+  path: string,
+  loadType: unknown,
+  frameCount: unknown,
+  issues: ValidationIssue[],
+): rawAnimations is readonly RuntimeAnimationClip[] {
+  if (rawAnimations === undefined) return true;
+  if (loadType !== "spritesheet") {
+    add(issues, path, "animation-load-type", "animations are supported only for spritesheet assets");
+    return false;
+  }
+  if (!Array.isArray(rawAnimations)) {
+    add(issues, path, "animation-shape", "animations must be an array");
+    return false;
+  }
+  const boundedFrameCount = typeof frameCount === "number" && Number.isInteger(frameCount) && frameCount > 0 && frameCount <= 4096
+    ? frameCount
+    : undefined;
+  if (boundedFrameCount === undefined) {
+    add(issues, path.replace(/\.animations$/, ".frameCount"), "animation-frame-count", "animated spritesheets require a positive integer frameCount");
+  }
+  const clipIds = new Set<string>();
+  rawAnimations.forEach((rawClip, index) => {
+    const clipPath = `${path}[${index}]`;
+    if (!isRecord(rawClip)) {
+      add(issues, clipPath, "animation-shape", "animation clip must be an object");
+      return;
+    }
+    if (!nonEmpty(rawClip.id)) {
+      add(issues, `${clipPath}.id`, "required", "animation clip id is required");
+    } else if (clipIds.has(rawClip.id)) {
+      add(issues, `${clipPath}.id`, "duplicate", `duplicate animation clip id: ${rawClip.id}`);
+    } else {
+      clipIds.add(rawClip.id);
+    }
+    if (
+      !Array.isArray(rawClip.frames) ||
+      rawClip.frames.length === 0 ||
+      rawClip.frames.some((frame) =>
+        typeof frame !== "number" ||
+        !Number.isInteger(frame) ||
+        frame < 0 ||
+        boundedFrameCount !== undefined && frame >= boundedFrameCount
+      )
+    ) {
+      add(issues, `${clipPath}.frames`, "animation-frames", "frames must be non-negative integers below frameCount");
+    }
+    if (typeof rawClip.frameRate !== "number" || !Number.isFinite(rawClip.frameRate) || rawClip.frameRate <= 0 || rawClip.frameRate > 60) {
+      add(issues, `${clipPath}.frameRate`, "animation-frame-rate", "frameRate must be finite, positive, and at most 60");
+    }
+    if (rawClip.repeat !== undefined && (typeof rawClip.repeat !== "number" || !Number.isInteger(rawClip.repeat) || rawClip.repeat < -1)) {
+      add(issues, `${clipPath}.repeat`, "animation-repeat", "repeat must be an integer greater than or equal to -1");
+    }
+    if (
+      rawClip.repeatDelayMs !== undefined &&
+      (typeof rawClip.repeatDelayMs !== "number" || !Number.isFinite(rawClip.repeatDelayMs) || rawClip.repeatDelayMs < 0 || rawClip.repeatDelayMs > 60000)
+    ) {
+      add(issues, `${clipPath}.repeatDelayMs`, "animation-repeat-delay", "repeatDelayMs must be finite from 0 to 60000");
+    }
+    if (rawClip.yoyo !== undefined && typeof rawClip.yoyo !== "boolean") {
+      add(issues, `${clipPath}.yoyo`, "animation-yoyo", "yoyo must be a boolean");
+    }
+  });
+  return true;
+}
+
+type ProjectionPoint = { x: number; y: number };
+
+const MAX_PROJECTIONS_PER_LAYOUT = 8;
+const MAX_PROJECT_PLACEMENTS_PER_LAYOUT = 32;
+const MAX_PROJECTION_VERTICES_PER_LAYOUT = 8192;
+const MAX_PROJECTION_TRIANGLES_PER_LAYOUT = 16384;
+
+function projectionCross(a: ProjectionPoint, b: ProjectionPoint, c: ProjectionPoint): number {
+  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+
+function pointOnSegment(a: ProjectionPoint, b: ProjectionPoint, p: ProjectionPoint): boolean {
+  return (
+    Math.min(a.x, b.x) <= p.x &&
+    p.x <= Math.max(a.x, b.x) &&
+    Math.min(a.y, b.y) <= p.y &&
+    p.y <= Math.max(a.y, b.y)
+  );
+}
+
+function segmentsIntersect(a: ProjectionPoint, b: ProjectionPoint, c: ProjectionPoint, d: ProjectionPoint): boolean {
+  const abC = projectionCross(a, b, c);
+  const abD = projectionCross(a, b, d);
+  const cdA = projectionCross(c, d, a);
+  const cdB = projectionCross(c, d, b);
+  if (abC === 0 && pointOnSegment(a, b, c)) return true;
+  if (abD === 0 && pointOnSegment(a, b, d)) return true;
+  if (cdA === 0 && pointOnSegment(c, d, a)) return true;
+  if (cdB === 0 && pointOnSegment(c, d, b)) return true;
+  return (abC > 0) !== (abD > 0) && (cdA > 0) !== (cdB > 0);
+}
+
+function hasInvertibleHomography(corners: readonly ProjectionPoint[]): boolean {
+  const [topLeft, topRight, bottomRight, bottomLeft] = corners;
+  const dx1 = topLeft.x - topRight.x + bottomRight.x - bottomLeft.x;
+  const dy1 = topLeft.y - topRight.y + bottomRight.y - bottomLeft.y;
+  const sx = topRight.x - bottomRight.x;
+  const sy = topRight.y - bottomRight.y;
+  const qx = bottomLeft.x - bottomRight.x;
+  const qy = bottomLeft.y - bottomRight.y;
+  const denominator = sx * qy - qx * sy;
+  let g = 0;
+  let h = 0;
+  if (denominator !== 0) {
+    g = (dx1 * qy - qx * dy1) / denominator;
+    h = (sx * dy1 - dx1 * sy) / denominator;
+  }
+  const matrix = [
+    topRight.x - topLeft.x + g * topRight.x,
+    bottomLeft.x - topLeft.x + h * bottomLeft.x,
+    topLeft.x,
+    topRight.y - topLeft.y + g * topRight.y,
+    bottomLeft.y - topLeft.y + h * bottomLeft.y,
+    topLeft.y,
+    g,
+    h,
+    1,
+  ];
+  if (!matrix.every(Number.isFinite)) return false;
+  const determinant =
+    matrix[0] * (matrix[4] * matrix[8] - matrix[5] * matrix[7]) -
+    matrix[1] * (matrix[3] * matrix[8] - matrix[5] * matrix[6]) +
+    matrix[2] * (matrix[3] * matrix[7] - matrix[4] * matrix[6]);
+  // Translation terms (c/f) must not make a valid world-space profile singular.
+  const norm = Math.max(1, Math.hypot(matrix[0], matrix[1], matrix[3], matrix[4], matrix[6], matrix[7], matrix[8]));
+  return norm > 0 && Math.abs(determinant) / norm ** 3 > 1e-8;
+}
+
+function validateProjectionSourceRect(value: unknown, path: string, issues: ValidationIssue[]): boolean {
+  if (
+    !isRecord(value) ||
+    typeof value.x !== "number" ||
+    !Number.isFinite(value.x) ||
+    typeof value.y !== "number" ||
+    !Number.isFinite(value.y) ||
+    typeof value.width !== "number" ||
+    !Number.isFinite(value.width) ||
+    value.width <= 0 ||
+    typeof value.height !== "number" ||
+    !Number.isFinite(value.height) ||
+    value.height <= 0
+  ) {
+    add(issues, path, "projection-source-rect", "sourceRect x and y must be finite and width and height must be positive finite numbers");
+    return false;
+  }
+  return true;
+}
+
+function validateProjectionClipPolygon(value: unknown, path: string, issues: ValidationIssue[]): boolean {
+  if (!Array.isArray(value) || value.length < 3 || value.length > 8) {
+    add(issues, path, "projection-clip-polygon", "clipPolygon must contain 3 to 8 points");
+    return false;
+  }
+  const points: ProjectionPoint[] = [];
+  value.forEach((rawPoint, index) => {
+    if (
+      !isRecord(rawPoint) ||
+      typeof rawPoint.x !== "number" || !Number.isFinite(rawPoint.x) ||
+      typeof rawPoint.y !== "number" || !Number.isFinite(rawPoint.y)
+    ) {
+      add(issues, `${path}[${index}]`, "projection-clip-polygon", "clipPolygon points must be finite");
+      return;
+    }
+    points.push({ x: rawPoint.x, y: rawPoint.y });
+  });
+  if (points.length !== value.length) return false;
+  const signedTwiceArea = points.reduce((area, point, index) => {
+    const next = points[(index + 1) % points.length];
+    return area + point.x * next.y - point.y * next.x;
+  }, 0);
+  if (!(signedTwiceArea > 0)) {
+    add(issues, path, "projection-clip-polygon", "clipPolygon must wind clockwise in screen space");
+    return false;
+  }
+  if (points.some((point, index) => projectionCross(point, points[(index + 1) % points.length], points[(index + 2) % points.length]) <= 0)) {
+    add(issues, path, "projection-clip-polygon", "clipPolygon must be strictly convex and non-crossing");
+    return false;
+  }
+  return true;
+}
+
+function validateProjectionProfile(
+  rawProjection: unknown,
+  path: string,
+  issues: ValidationIssue[],
+): rawProjection is RuntimeProjectionProfile {
+  if (!isRecord(rawProjection)) {
+    add(issues, path, "projection-shape", "projection profile must be an object");
+    return false;
+  }
+  let valid = true;
+  if (!nonEmpty(rawProjection.id)) {
+    add(issues, `${path}.id`, "projection-id", "projection id is required");
+    valid = false;
+  }
+  if (rawProjection.kind !== "projective-quad") {
+    add(issues, `${path}.kind`, "projection-kind", "projection kind must be projective-quad");
+    valid = false;
+  }
+
+  const localSize = rawProjection.localSize;
+  if (
+    !isRecord(localSize) ||
+    typeof localSize.width !== "number" ||
+    !Number.isFinite(localSize.width) ||
+    localSize.width <= 0 ||
+    typeof localSize.height !== "number" ||
+    !Number.isFinite(localSize.height) ||
+    localSize.height <= 0
+  ) {
+    add(issues, `${path}.localSize`, "projection-local-size", "localSize width and height must be positive finite numbers");
+    valid = false;
+  }
+
+  const corners = rawProjection.corners;
+  const points: ProjectionPoint[] = [];
+  if (!Array.isArray(corners) || corners.length !== 4) {
+    add(issues, `${path}.corners`, "projection-corners", "corners must contain four points");
+    valid = false;
+  } else {
+    corners.forEach((corner, index) => {
+      if (!isRecord(corner) || typeof corner.x !== "number" || !Number.isFinite(corner.x) || typeof corner.y !== "number" || !Number.isFinite(corner.y)) {
+        add(issues, `${path}.corners[${index}]`, "projection-corners", "corner x and y must be finite numbers");
+        valid = false;
+      } else {
+        points.push({ x: corner.x, y: corner.y });
+      }
+    });
+    if (points.length === 4) {
+      const signedTwiceArea =
+        projectionCross(points[0], points[1], points[2]) +
+        projectionCross(points[0], points[2], points[3]);
+      if (!(signedTwiceArea > 0)) {
+        add(issues, `${path}.corners`, "projection-winding", "corners must wind clockwise in screen space");
+        valid = false;
+      }
+      if (!(signedTwiceArea / 2 > 1)) {
+        add(issues, `${path}.corners`, "projection-area", "projection quad area must exceed 1");
+        valid = false;
+      }
+      if (segmentsIntersect(points[0], points[1], points[2], points[3]) || segmentsIntersect(points[1], points[2], points[3], points[0])) {
+        add(issues, `${path}.corners`, "projection-self-intersection", "projection quad edges must not self-intersect");
+        valid = false;
+      }
+      if ([0, 1, 2, 3].some((index) => projectionCross(points[index], points[(index + 1) % 4], points[(index + 2) % 4]) <= 0)) {
+        add(issues, `${path}.corners`, "projection-convex", "projection quad must be strictly convex");
+        valid = false;
+      }
+      if (!hasInvertibleHomography(points)) {
+        add(issues, `${path}.corners`, "projection-homography", "projection homography must be invertible");
+        valid = false;
+      }
+    }
+  }
+
+  const horizontalGuides = rawProjection.horizontalGuides;
+  if (horizontalGuides !== undefined) {
+    const localHeight = isRecord(localSize) && typeof localSize.height === "number" && Number.isFinite(localSize.height) && localSize.height > 0
+      ? localSize.height
+      : undefined;
+    if (!Array.isArray(horizontalGuides)) {
+      add(issues, `${path}.horizontalGuides`, "projection-guides", "horizontalGuides must be an array");
+      valid = false;
+    } else {
+      let previousY = 0;
+      const guideRows: Array<{ localY: number; left: ProjectionPoint; right: ProjectionPoint }> = [];
+      horizontalGuides.forEach((rawGuide, index) => {
+        const guidePath = `${path}.horizontalGuides[${index}]`;
+        if (!isRecord(rawGuide)) {
+          add(issues, guidePath, "projection-guides", "horizontal guide must be an object");
+          valid = false;
+          return;
+        }
+        const localY = rawGuide.localY;
+        const left = rawGuide.left;
+        const right = rawGuide.right;
+        if (
+          typeof localY !== "number" || !Number.isFinite(localY) || localHeight === undefined ||
+          !(localY > 0 && localY < localHeight) || !(localY > previousY)
+        ) {
+          add(issues, `${guidePath}.localY`, "projection-guides", "guide localY must be finite, strictly increasing, and between local bounds");
+          valid = false;
+        }
+        const validGuidePoint = (value: unknown): value is ProjectionPoint =>
+          isRecord(value) && typeof value.x === "number" && Number.isFinite(value.x) && typeof value.y === "number" && Number.isFinite(value.y);
+        if (!validGuidePoint(left)) {
+          add(issues, `${guidePath}.left`, "projection-guides", "guide left endpoint must be finite");
+          valid = false;
+        }
+        if (!validGuidePoint(right)) {
+          add(issues, `${guidePath}.right`, "projection-guides", "guide right endpoint must be finite");
+          valid = false;
+        }
+        if (typeof localY === "number" && Number.isFinite(localY) && validGuidePoint(left) && validGuidePoint(right)) {
+          guideRows.push({ localY, left, right });
+          previousY = localY;
+        }
+      });
+      if (points.length === 4 && localHeight !== undefined && guideRows.length === horizontalGuides.length) {
+        const [topLeft, topRight, bottomRight, bottomLeft] = points;
+        const rows = [
+          { localY: 0, left: topLeft, right: topRight },
+          ...guideRows,
+          { localY: localHeight, left: bottomLeft, right: bottomRight },
+        ];
+        rows.slice(0, -1).forEach((top, index) => {
+          const bottom = rows[index + 1];
+          const band: ProjectionPoint[] = [top.left, top.right, bottom.right, bottom.left];
+          const bandArea = projectionCross(band[0], band[1], band[2]) + projectionCross(band[0], band[2], band[3]);
+          const bandPath = `${path}.horizontalGuides[${index}]`;
+          if (!(bandArea / 2 > 1)) {
+            add(issues, bandPath, "projection-guides", "each guided band area must exceed 1");
+            valid = false;
+          }
+          if (
+            segmentsIntersect(band[0], band[1], band[2], band[3]) ||
+            segmentsIntersect(band[1], band[2], band[3], band[0]) ||
+            [0, 1, 2, 3].some((cornerIndex) => projectionCross(band[cornerIndex], band[(cornerIndex + 1) % 4], band[(cornerIndex + 2) % 4]) <= 0) ||
+            !hasInvertibleHomography(band)
+          ) {
+            add(issues, bandPath, "projection-guides", "each guided band must be strictly convex, non-crossing, and invertible");
+            valid = false;
+          }
+        });
+      }
+    }
+  }
+
+  const subdivisions = rawProjection.subdivisions;
+  const subdivisionX = isRecord(subdivisions) ? subdivisions.x : undefined;
+  const subdivisionY = isRecord(subdivisions) ? subdivisions.y : undefined;
+  if (
+    !isRecord(subdivisions) ||
+    typeof subdivisionX !== "number" ||
+    !Number.isInteger(subdivisionX) ||
+    subdivisionX < 1 ||
+    subdivisionX > 8 ||
+    typeof subdivisionY !== "number" ||
+    !Number.isInteger(subdivisionY) ||
+    subdivisionY < 1 ||
+    subdivisionY > 24
+  ) {
+    add(issues, `${path}.subdivisions`, "projection-subdivisions", "subdivisions x must be an integer from 1 to 8 and y from 1 to 24");
+    valid = false;
+  }
+  return valid;
+}
+
+function migrateRuntimeExperience(value: Record<string, unknown>): Record<string, unknown> {
+  const migrated = clone(value);
+  migrated.schemaVersion = RUNTIME_EXPERIENCE_SCHEMA_VERSION;
+  const layouts = migrated.layouts;
+  if (isRecord(layouts)) {
+    for (const orientation of ["landscape", "portrait"] as const) {
+      const layout = layouts[orientation];
+      if (isRecord(layout)) layout.projections = [];
+    }
+  }
+  return migrated;
+}
+
+export function validateRuntimeExperience(input: unknown): RuntimeExperienceValidationResult {
   const issues: ValidationIssue[] = [];
-  if (!isRecord(value)) {
+  if (!isRecord(input)) {
     return {
       valid: false,
       issues: [{ path: "experience", code: "required", message: "runtime experience must be an object" }],
     };
   }
 
+  const value = input.schemaVersion === 2 ? migrateRuntimeExperience(input) : input;
+
   if (value.schemaVersion !== RUNTIME_EXPERIENCE_SCHEMA_VERSION) {
-    add(issues, "schemaVersion", "schema", "runtime experience schemaVersion must be 2");
+    add(issues, "schemaVersion", "schema", "runtime experience schemaVersion must be 3");
   }
   if (value.mode !== "demo" && value.mode !== "released") {
     add(issues, "mode", "mode", "mode must be demo or released");
@@ -118,6 +490,12 @@ export function validateRuntimeExperience(value: unknown): RuntimeExperienceVali
       if (!isRecord(frame) || !(Number(frame.width) > 0) || !(Number(frame.height) > 0)) {
         add(issues, `${path}.frame`, "required", "spritesheet frame width and height are required");
       }
+      if (
+        rawAsset.frameCount !== undefined &&
+        (typeof rawAsset.frameCount !== "number" || !Number.isInteger(rawAsset.frameCount) || rawAsset.frameCount < 1 || rawAsset.frameCount > 4096)
+      ) {
+        add(issues, `${path}.frameCount`, "animation-frame-count", "frameCount must be an integer from 1 to 4096");
+      }
     }
     if (rawAsset.loadType === "atlas") {
       if (!nonEmpty(rawAsset.atlasDataUri)) add(issues, `${path}.atlasDataUri`, "required", "atlas data URI is required");
@@ -125,6 +503,7 @@ export function validateRuntimeExperience(value: unknown): RuntimeExperienceVali
         add(issues, `${path}.atlasDataUri`, "demo-uri", "demo atlas URI must live under /imagegen");
       }
     }
+    validateAnimationClips(rawAsset.animations, `${path}.animations`, rawAsset.loadType, rawAsset.frameCount, issues);
   });
 
   const spawnGroups = isRecord(value.spawns) ? value.spawns : {};
@@ -153,6 +532,47 @@ export function validateRuntimeExperience(value: unknown): RuntimeExperienceVali
         const asset = assetsById.get(rawSpawn.assetId);
         if (!asset) add(issues, `${path}.assetId`, "reference", `unknown asset: ${rawSpawn.assetId}`);
         else if (asset.kind !== expectedKind) add(issues, `${path}.assetId`, "kind-mismatch", `asset must have kind ${expectedKind}`);
+        const animation = rawSpawn.animation;
+        if (animation !== undefined) {
+          const animationPath = `${path}.animation`;
+          if (!isRecord(animation)) {
+            add(issues, animationPath, "animation-shape", "spawn animation binding must be an object");
+          } else {
+            if (!nonEmpty(animation.defaultClip)) {
+              add(issues, `${animationPath}.defaultClip`, "required", "defaultClip is required");
+            }
+            if (animation.autoplay !== undefined && typeof animation.autoplay !== "boolean") {
+              add(issues, `${animationPath}.autoplay`, "animation-autoplay", "autoplay must be a boolean");
+            }
+            if (animation.flipWithMovement !== undefined && typeof animation.flipWithMovement !== "boolean") {
+              add(issues, `${animationPath}.flipWithMovement`, "animation-flip", "flipWithMovement must be a boolean");
+            }
+            if (
+              animation.movementThreshold !== undefined &&
+              (typeof animation.movementThreshold !== "number" || !Number.isFinite(animation.movementThreshold) || animation.movementThreshold <= 0)
+            ) {
+              add(issues, `${animationPath}.movementThreshold`, "animation-threshold", "movementThreshold must be a positive finite number");
+            }
+            if (
+              animation.stopDelayMs !== undefined &&
+              (typeof animation.stopDelayMs !== "number" || !Number.isFinite(animation.stopDelayMs) || animation.stopDelayMs < 0 || animation.stopDelayMs > 60000)
+            ) {
+              add(issues, `${animationPath}.stopDelayMs`, "animation-stop-delay", "stopDelayMs must be finite from 0 to 60000");
+            }
+            const clips = asset?.animations;
+            const clipIds = new Set(Array.isArray(clips) ? clips.map((clip) => clip?.id) : []);
+            if (nonEmpty(animation.defaultClip) && !clipIds.has(animation.defaultClip)) {
+              add(issues, `${animationPath}.defaultClip`, "reference", `unknown animation clip: ${animation.defaultClip}`);
+            }
+            if (animation.movingClip !== undefined) {
+              if (!nonEmpty(animation.movingClip)) {
+                add(issues, `${animationPath}.movingClip`, "required", "movingClip must be a non-empty string");
+              } else if (!clipIds.has(animation.movingClip)) {
+                add(issues, `${animationPath}.movingClip`, "reference", `unknown animation clip: ${animation.movingClip}`);
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -207,6 +627,25 @@ export function validateRuntimeExperience(value: unknown): RuntimeExperienceVali
       continue;
     }
     const layout = rawLayout as RuntimeOrientationLayout;
+    const projections = Array.isArray(layout.projections) ? layout.projections : [];
+    if (!Array.isArray(layout.projections)) {
+      add(issues, `${path}.projections`, "required", "layout projections must be an array");
+    }
+    if (projections.length > MAX_PROJECTIONS_PER_LAYOUT) {
+      add(issues, `${path}.projections`, "projection-cap", `layout may define at most ${MAX_PROJECTIONS_PER_LAYOUT} projection profiles`);
+    }
+    const projectionsById = new Map<string, RuntimeProjectionProfile>();
+    projections.forEach((rawProjection, index) => {
+      const projectionPath = `${path}.projections[${index}]`;
+      const validProjection = validateProjectionProfile(rawProjection, projectionPath, issues);
+      if (validProjection && nonEmpty(rawProjection.id)) {
+        if (projectionsById.has(rawProjection.id)) {
+          add(issues, `${projectionPath}.id`, "duplicate", `duplicate projection id: ${rawProjection.id}`);
+        } else {
+          projectionsById.set(rawProjection.id, rawProjection);
+        }
+      }
+    });
     if (layout.fallbackBackgroundAssetId !== undefined) {
       const fallback = assetsById.get(layout.fallbackBackgroundAssetId);
       if (!fallback) add(issues, `${path}.fallbackBackgroundAssetId`, "reference", `unknown fallback background: ${layout.fallbackBackgroundAssetId}`);
@@ -230,6 +669,9 @@ export function validateRuntimeExperience(value: unknown): RuntimeExperienceVali
     } else {
       const placementIds = new Set<string>();
       const populatedLayers = new Set<string>();
+      let projectPlacementCount = 0;
+      let projectionVertices = 0;
+      let projectionTriangles = 0;
       layout.placements.forEach((placement, index) => {
         const placementPath = `${path}.placements[${index}]`;
         if (!isRecord(placement)) {
@@ -252,9 +694,87 @@ export function validateRuntimeExperience(value: unknown): RuntimeExperienceVali
         } else if (placement.type === "spawn") {
           if (!nonEmpty(placement.spawnId) || !spawnsById.has(placement.spawnId)) {
             add(issues, `${placementPath}.spawnId`, "reference", `unknown spawn: ${String(placement.spawnId)}`);
+          } else if (placement.assetId !== undefined) {
+            const asset = nonEmpty(placement.assetId) ? assetsById.get(placement.assetId) : undefined;
+            const spawn = spawnsById.get(placement.spawnId);
+            if (!asset) add(issues, `${placementPath}.assetId`, "reference", `unknown asset: ${String(placement.assetId)}`);
+            else if (spawn && asset.kind !== spawn.kind) add(issues, `${placementPath}.assetId`, "kind-mismatch", `asset must have kind ${spawn.kind}`);
           }
         } else {
           add(issues, `${placementPath}.type`, "type", "placement type must be asset or spawn");
+        }
+        if (placement.projection !== undefined) {
+          const projectedAsset = placement.type === "asset"
+            ? nonEmpty(placement.assetId) ? assetsById.get(placement.assetId) : undefined
+            : placement.type === "spawn" && nonEmpty(placement.spawnId)
+              ? assetsById.get(nonEmpty(placement.assetId) ? placement.assetId : spawnsById.get(placement.spawnId)?.assetId ?? "")
+              : undefined;
+          if (projectedAsset?.loadType === "spritesheet") {
+            add(issues, `${placementPath}.projection`, "projection-spritesheet", "spritesheet placements cannot use projective projection");
+          }
+          if (placement.layer === "weather") {
+            add(issues, `${placementPath}.projection`, "projection-weather", "weather placements cannot use projections");
+          }
+          const projection = placement.projection;
+          if (!isRecord(projection)) {
+            add(issues, `${placementPath}.projection`, "projection-shape", "placement projection must be an object");
+          } else if (projection.mode !== "project" && projection.mode !== "clip" && projection.mode !== "underlay") {
+            add(issues, `${placementPath}.projection.mode`, "projection-mode", "projection mode must be project, clip, or underlay");
+          } else {
+            const ref = projection.ref;
+            const profile = nonEmpty(ref) ? projectionsById.get(ref) : undefined;
+            if (!nonEmpty(ref)) {
+              add(issues, `${placementPath}.projection.ref`, "projection-ref", "projection ref is required");
+            } else if (!profile) {
+              add(issues, `${placementPath}.projection.ref`, "projection-ref", `unknown projection profile: ${ref}`);
+            }
+            if (projection.mode === "project") {
+              projectPlacementCount += 1;
+              if (projectPlacementCount > MAX_PROJECT_PLACEMENTS_PER_LAYOUT) {
+                add(issues, `${path}.placements`, "projection-project-cap", `layout may define at most ${MAX_PROJECT_PLACEMENTS_PER_LAYOUT} project placements`);
+              }
+              const localPosition = projection.localPosition;
+              if (!isRecord(localPosition) || typeof localPosition.x !== "number" || !Number.isFinite(localPosition.x) || typeof localPosition.y !== "number" || !Number.isFinite(localPosition.y)) {
+                add(issues, `${placementPath}.projection.localPosition`, "projection-local-position", "project localPosition x and y must be finite numbers");
+              } else if (profile && (localPosition.x < 0 || localPosition.x > profile.localSize.width || localPosition.y < 0 || localPosition.y > profile.localSize.height)) {
+                add(issues, `${placementPath}.projection.localPosition`, "projection-local-position", "project localPosition must be inside projection localSize");
+              }
+              if (
+                projection.strength !== undefined &&
+                (typeof projection.strength !== "number" || !Number.isFinite(projection.strength) || projection.strength < 0 || projection.strength > 1)
+              ) {
+                add(issues, `${placementPath}.projection.strength`, "projection-strength", "project strength must be finite from 0 to 1");
+              }
+            } else {
+              validateProjectionSourceRect(projection.sourceRect, `${placementPath}.projection.sourceRect`, issues);
+              if (projection.mode === "clip") {
+                if (projection.clipPolygon !== undefined) {
+                  validateProjectionClipPolygon(projection.clipPolygon, `${placementPath}.projection.clipPolygon`, issues);
+                }
+                if (
+                  projection.uvInsetX !== undefined &&
+                  (typeof projection.uvInsetX !== "number" || !Number.isFinite(projection.uvInsetX) || projection.uvInsetX < 0 || projection.uvInsetX >= 0.5)
+                ) {
+                  add(issues, `${placementPath}.projection.uvInsetX`, "projection-uv-inset", "clip uvInsetX must be finite from 0 up to but not including 0.5");
+                }
+              }
+              if (projection.mode === "underlay" && (typeof projection.edgeY !== "number" || !Number.isFinite(projection.edgeY))) {
+                add(issues, `${placementPath}.projection.edgeY`, "projection-edge-y", "underlay edgeY must be finite");
+              }
+            }
+            if (profile) {
+              const guidedBands = Array.isArray(profile.horizontalGuides) ? profile.horizontalGuides.length + 1 : 1;
+              const rows = guidedBands * profile.subdivisions.y + 1;
+              projectionVertices += (profile.subdivisions.x + 1) * rows;
+              projectionTriangles += 2 * profile.subdivisions.x * (rows - 1);
+            }
+          }
+        }
+        if (projectionVertices > MAX_PROJECTION_VERTICES_PER_LAYOUT) {
+          add(issues, `${path}.placements`, "projection-vertex-cap", `projected vertices may not exceed ${MAX_PROJECTION_VERTICES_PER_LAYOUT} per layout`);
+        }
+        if (projectionTriangles > MAX_PROJECTION_TRIANGLES_PER_LAYOUT) {
+          add(issues, `${path}.placements`, "projection-triangle-cap", `projected triangles may not exceed ${MAX_PROJECTION_TRIANGLES_PER_LAYOUT} per layout`);
         }
         validatePoint(placement.position, `${placementPath}.position`, issues);
         if (typeof placement.scale !== "number" || !(placement.scale > 0)) add(issues, `${placementPath}.scale`, "range", "scale must be positive");

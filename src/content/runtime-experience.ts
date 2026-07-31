@@ -1,4 +1,4 @@
-export const RUNTIME_EXPERIENCE_SCHEMA_VERSION = 2 as const;
+export const RUNTIME_EXPERIENCE_SCHEMA_VERSION = 3 as const;
 
 export type RuntimeAssetKind = "scene" | "character" | "weather" | "item" | "animal";
 export type RuntimeAssetLoadType = "image" | "spritesheet" | "atlas";
@@ -18,19 +18,86 @@ export type NormalizedBounds = {
   maxY: number;
 };
 
+export type RuntimeAnimationClip = {
+  id: string;
+  frames: readonly number[];
+  frameRate: number;
+  repeat?: number;
+  repeatDelayMs?: number;
+  yoyo?: boolean;
+};
+
+/** World-space point used by projective projection profiles. */
+export type RuntimeWorldPoint = {
+  x: number;
+  y: number;
+};
+
+export type RuntimeProjectionHorizontalGuide = {
+  /** Local source-space y coordinate of this shared mesh row. */
+  localY: number;
+  /** World-space left and right endpoints at localY. */
+  left: RuntimeWorldPoint;
+  right: RuntimeWorldPoint;
+};
+
+export type RuntimeProjectionProfile = {
+  id: string;
+  kind: "projective-quad";
+  localSize: { width: number; height: number };
+  /** Corners ordered top-left, top-right, bottom-right, bottom-left. */
+  corners: readonly [RuntimeWorldPoint, RuntimeWorldPoint, RuntimeWorldPoint, RuntimeWorldPoint];
+  /** Optional exact rows that split one logical surface into guided bands. */
+  horizontalGuides?: readonly RuntimeProjectionHorizontalGuide[];
+  subdivisions: { x: number; y: number };
+};
+
+export type RuntimeProjectionSourceRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type RuntimePlacementProjection =
+  | { mode: "project"; ref: string; localPosition: RuntimeWorldPoint; strength?: number }
+  | {
+      mode: "clip";
+      ref: string;
+      sourceRect: RuntimeProjectionSourceRect;
+      clipPolygon?: readonly RuntimeWorldPoint[];
+      uvInsetX?: number;
+    }
+  | { mode: "underlay"; ref: string; sourceRect: RuntimeProjectionSourceRect; edgeY: number };
+
+/** Alias retained for callers that name projection data directly. */
+export type RuntimeProjection = RuntimeProjectionProfile;
+
 export type RuntimeAsset = {
   id: string;
   kind: RuntimeAssetKind;
   loadType: RuntimeAssetLoadType;
   uri: string;
   frame?: { width: number; height: number };
+  frameCount?: number;
   atlasDataUri?: string;
+  animations?: readonly RuntimeAnimationClip[];
+};
+
+export type RuntimeSpawnAnimationBinding = {
+  defaultClip: string;
+  movingClip?: string;
+  autoplay?: boolean;
+  flipWithMovement?: boolean;
+  movementThreshold?: number;
+  stopDelayMs?: number;
 };
 
 type SpawnBase = {
   id: string;
   assetId: string;
   actionIds?: readonly string[];
+  animation?: RuntimeSpawnAnimationBinding;
 };
 
 export type CharacterSpawn = SpawnBase & {
@@ -61,6 +128,7 @@ type RuntimePlacementBase = {
   scale: number;
   depth: number;
   flipX?: boolean;
+  projection?: RuntimePlacementProjection;
 };
 
 export type RuntimeAssetPlacement = RuntimePlacementBase & {
@@ -71,6 +139,8 @@ export type RuntimeAssetPlacement = RuntimePlacementBase & {
 export type RuntimeSpawnPlacement = RuntimePlacementBase & {
   type: "spawn";
   spawnId: string;
+  /** Optional layout-specific visual asset while retaining the spawn identity and actions. */
+  assetId?: string;
 };
 
 export type RuntimePlacement = RuntimeAssetPlacement | RuntimeSpawnPlacement;
@@ -86,6 +156,7 @@ export type RuntimeOrientationLayout = {
     scale: number;
     depth: number;
   };
+  projections: readonly RuntimeProjectionProfile[];
   placements: readonly RuntimePlacement[];
 };
 

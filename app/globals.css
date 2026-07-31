@@ -237,6 +237,10 @@ kbd {
   50% { transform: rotate(180deg); }
   75% { transform: rotate(270deg); }
 }
+@media (min-width: 761px) {
+  .runtime-brand { opacity: .8; transform: scale(.8); transform-origin: top left; }
+  .game-hint { opacity: .8; transform: scale(.8); transform-origin: bottom left; }
+}
 @media (pointer: coarse), (max-width: 760px) {
   .touch-controls { display: grid; }
   .game-hint { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 86px); }
