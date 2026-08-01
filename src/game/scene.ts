@@ -2,6 +2,7 @@ import type {
   RuntimeAction,
   RuntimeExperience,
   RuntimeInteraction,
+  RuntimeOrientation,
   RuntimeOrientationLayout,
   RuntimePlacement,
   RuntimeSpawn,
@@ -48,8 +49,22 @@ export function getRuntimeAnimationKey(assetId: string, clipId: string) {
   return `${getRuntimeAssetKey(assetId)}-${clipId}`;
 }
 
-export function getRenderableAssetIds(experience: RuntimeExperience) {
-  return new Set(experience.assets.map((asset) => asset.id));
+export function getRenderableAssetIds(experience: RuntimeExperience, orientation?: RuntimeOrientation) {
+  if (!orientation) return new Set(experience.assets.map((asset) => asset.id));
+
+  const spawns = new Map(allSpawns(experience).map((spawn) => [spawn.id, spawn]));
+  const layout = experience.layouts[orientation];
+  const ids = new Set<string>();
+  layout.placements.forEach((placement) => {
+    const assetId = placementAssetId(placement, spawns);
+    if (assetId) ids.add(assetId);
+  });
+  const playerAssetId = spawns.get(layout.player.spawnId)?.assetId;
+  if (playerAssetId) ids.add(playerAssetId);
+  if (layout.fallbackBackgroundAssetId) ids.add(layout.fallbackBackgroundAssetId);
+  const weather = getWeatherParticleAction(experience);
+  if (weather) ids.add(weather.assetId);
+  return ids;
 }
 
 export function shouldRenderPlacementImage(placement: RuntimePlacement) {
@@ -107,6 +122,19 @@ function normalizedDistance(a: { x: number; y: number }, b: { x: number; y: numb
   return Math.hypot((a.x - b.x) / layout.world.width, (a.y - b.y) / layout.world.height);
 }
 
+export function getInteractionApproachDistance(
+  player: { x: number; y: number },
+  target: { x: number; y: number },
+  layout: RuntimeOrientationLayout,
+) {
+  const bounds = layout.player.movementBounds;
+  const approachableTarget = {
+    x: Math.max(bounds.minX * layout.world.width, Math.min(bounds.maxX * layout.world.width, target.x)),
+    y: Math.max(bounds.minY * layout.world.height, Math.min(bounds.maxY * layout.world.height, target.y)),
+  };
+  return normalizedDistance(player, approachableTarget, layout);
+}
+
 export function createRuntimeExperienceScene(
   bridge: GameBridge,
   experience: RuntimeExperience,
@@ -115,7 +143,8 @@ export function createRuntimeExperienceScene(
   const movement: Record<MoveDirection, boolean> = { up: false, down: false, left: false, right: false };
   const spawns = new Map(allSpawns(experience).map((spawn) => [spawn.id, spawn]));
   const assets = new Map(experience.assets.map((asset) => [asset.id, asset]));
-  const loadedAssetIds = getRenderableAssetIds(experience);
+  const loadedAssetIds = new Set<string>();
+  const queuedAssetIds = new Set<string>();
   const clickTargets = new Set(
     experience.interactions.flatMap((interaction) =>
       interaction.triggers.filter((trigger) => trigger.type === "click").map((trigger) => trigger.targetId),
@@ -139,6 +168,21 @@ export function createRuntimeExperienceScene(
   let inputEnabled = bridge.isInputEnabled();
   let scaleListener: ((gameSize: { width: number; height: number }) => void) | null = null;
   let keyListener: ((event: KeyboardEvent) => void) | null = null;
+  let layoutLoadToken = 0;
+
+  const queueAsset = (loader: SceneContext["load"], assetId: string) => {
+    const asset = assets.get(assetId);
+    if (!asset) return;
+    const key = getRuntimeAssetKey(asset.id);
+    if (asset.loadType === "spritesheet" && asset.frame) {
+      loader.spritesheet(key, asset.uri, { frameWidth: asset.frame.width, frameHeight: asset.frame.height });
+    } else if (asset.loadType === "atlas" && asset.atlasDataUri) {
+      loader.atlas(key, asset.uri, asset.atlasDataUri);
+    } else {
+      loader.image(key, asset.uri);
+    }
+    queuedAssetIds.add(assetId);
+  };
 
   const clearMovement = () => {
     (Object.keys(movement) as MoveDirection[]).forEach((direction) => { movement[direction] = false; });
@@ -216,7 +260,7 @@ export function createRuntimeExperienceScene(
     const currentScene = scene;
     if (!currentScene?.anims) return;
     experience.assets.forEach((asset) => {
-      if (asset.loadType !== "spritesheet" || !asset.animations) return;
+      if (!loadedAssetIds.has(asset.id) || asset.loadType !== "spritesheet" || !asset.animations) return;
       asset.animations.forEach((clip) => {
         const key = getRuntimeAnimationKey(asset.id, clip.id);
         if (registeredAnimationKeys.has(key)) return;
@@ -541,12 +585,34 @@ export function createRuntimeExperienceScene(
     if (!inputEnabled) pauseAnimations();
   };
 
+  const buildLayoutWhenReady = (viewportWidth: number, viewportHeight: number) => {
+    const currentScene = scene;
+    if (!currentScene) return;
+    const token = ++layoutLoadToken;
+    const { orientation } = getViewportCamera(viewportWidth, viewportHeight, experience.layouts);
+    const requiredAssetIds = getRenderableAssetIds(experience, orientation);
+    const pendingAssetIds = [...requiredAssetIds].filter((assetId) => !loadedAssetIds.has(assetId));
+    if (pendingAssetIds.length === 0) {
+      buildLayout(viewportWidth, viewportHeight);
+      return;
+    }
+
+    pendingAssetIds
+      .filter((assetId) => !queuedAssetIds.has(assetId))
+      .forEach((assetId) => queueAsset(currentScene.load, assetId));
+    currentScene.load.once("complete", () => {
+      pendingAssetIds.forEach((assetId) => loadedAssetIds.add(assetId));
+      if (token === layoutLoadToken) buildLayout(viewportWidth, viewportHeight);
+    });
+    currentScene.load.start();
+  };
+
   const triggerNearest = () => {
     if (!inputEnabled) return;
     let nearest: { targetId: string; object: any; distance: number } | undefined;
     interactiveObjects.forEach((targetObjectsForId, targetId) => {
       targetObjectsForId.forEach((object) => {
-        const distance = normalizedDistance(player, object, layout);
+        const distance = getInteractionApproachDistance(player, object, layout);
         if (!nearest || distance < nearest.distance) nearest = { targetId, object, distance };
       });
     });
@@ -557,15 +623,12 @@ export function createRuntimeExperienceScene(
 
   return {
     preload(this: SceneContext) {
-      experience.assets.filter((asset) => loadedAssetIds.has(asset.id)).forEach((asset) => {
-        const key = getRuntimeAssetKey(asset.id);
-        if (asset.loadType === "spritesheet" && asset.frame) {
-          this.load.spritesheet(key, asset.uri, { frameWidth: asset.frame.width, frameHeight: asset.frame.height });
-        } else if (asset.loadType === "atlas" && asset.atlasDataUri) {
-          this.load.atlas(key, asset.uri, asset.atlasDataUri);
-        } else {
-          this.load.image(key, asset.uri);
-        }
+      const viewportWidth = this.scale.width || (typeof window === "undefined" ? 0 : window.innerWidth);
+      const viewportHeight = this.scale.height || (typeof window === "undefined" ? 0 : window.innerHeight);
+      const { orientation } = getViewportCamera(viewportWidth, viewportHeight, experience.layouts);
+      getRenderableAssetIds(experience, orientation).forEach((assetId) => {
+        queueAsset(this.load, assetId);
+        loadedAssetIds.add(assetId);
       });
     },
     create(this: SceneContext) {
@@ -597,7 +660,7 @@ export function createRuntimeExperienceScene(
         bridge.on("goody:input", ({ enabled }) => setInputEnabled(enabled)),
       );
       setInputEnabled(bridge.isInputEnabled());
-      scaleListener = (gameSize) => buildLayout(gameSize.width, gameSize.height);
+      scaleListener = (gameSize) => buildLayoutWhenReady(gameSize.width, gameSize.height);
       this.scale.on("resize", scaleListener);
       const stop = () => {
         destroyLayout();

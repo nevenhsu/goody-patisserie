@@ -1,6 +1,6 @@
 # Goody Mobile Scene Handoff
 
-狀態：portrait/mobile continuation handoff；目前 mobile scene 仍是骨架，尚未完成。這份文件提供下一個實作 session 的可驗證入口，不代表任何尚未由 source、spec 或 browser proof 證實的幾何數字。
+狀態：portrait/mobile 已改為 canonical `390x844` world、普通置中 cover camera、schema v9 分層 assets 與 canonical wall/floor runtime projection；`390x844`、`430x932`、無重載轉向及 desktop `1440x900` browser visual QA 已完成。貓是 desktop／mobile 唯一可移動玩家；人物是 counter 後方的固定店員。
 
 ## 1. Objective 與 source priority
 
@@ -24,30 +24,26 @@
 - **User-approved visual contracts from current history**：目前已確認的 desktop scene composition、11 個 SKU 的共同 pastry 規格、可見 actor/cat/clipboard 關係與本 handoff 指定的 reference paths。這一層是視覺意圖與回歸邊界，不可代替 machine values。
 - **Inference/recommendation**：任何 mobile 排版、portrait bbox、normalized position、scale、depth、occlusion row、是否生成 mobile-specific asset，以及由 screenshot 推導的尺寸，都必須先交給 ChatGPT Pro 的 `8-bit website project` 研究，再以 browser screenshot 與 code/spec 交叉驗證；未驗證前不得寫成目前事實。
 
-## 3. Current portrait truth（僅記錄已驗證現況）
+## 3. Current portrait truth
 
-目前 `src/runtime/demo.ts` 的 portrait layout 如下：
+目前 `src/runtime/demo.ts`、asset spec 與 manifest 定義如下：
 
-- world 是 `1086x1448`。
-- `projections` 是空陣列 `[]`；沒有 portrait projective profile。
-- 只有三個 portrait placements：
-  - `port-wall`：`position (.5,.5)`、`scale 1`、`depth 0`。
-  - `port-floor`：`position (.5,.8)`、`scale 1`、`depth 20`。
-- `port-counter`：`position (.5,.7)`、`scale 1`、`depth 30`。
-- player 使用 `player-landscape`，位置 `(.5,.79)`；movement bounds 為 `minX .12 / maxX .88 / minY .64 / maxY .89`；`scale .27`；`depth 50`。
-- portrait placements 目前沒有 refrigerator、oven、display、pastries、calendar、menu、cat 或 stools。
+- world 是 `390x844`；所有 portrait viewport 使用既有普通置中 cover，不增加 phone-safe/contain 特例。`390x844` 是 1:1，`430x932` 只做接近 aspect 的置中 cover crop。
+- portrait 使用 scale `1/3` 的 `1170x252` ceiling、`918x1467` backwall 與 counter v3 direct layers；side walls/floor 改用 fully opaque canonical `384x1024`/`1536x512` textures，以 portrait-only projective clip profiles 投影。`portrait-wall-left` corners `(0,60)/(42,74)/(55,650)/(0,650)`、`portrait-wall-right` corners `(348,74)/(390,60)/(390,650)/(335,650)`、`portrait-floor` corners `(55,563)/(335,563)/(390,844)/(0,844)`，皆 subdivisions `4x16`、無 horizontal guides。Wall placements 使用 `concept-side-wall-canonical-v2`、full sourceRect `384x1024`、neutral position/scale、depth `3`、無 `flipX`；floor 使用 `concept-floor-canonical-v3`、full sourceRect `1536x512`、neutral position/scale、depth `2`。`mobile-side-wall-v3`/`mobile-floor-v3` 只保留 manifest delivery history，不是 active runtime assets。
+- refrigerator、oven、curtain、fixture 與 counter base/top 各有 mobile-specific 窄長 PNG；mixer、display、11 個 pastries、calendar/menu、6 張 stools、左右側牆 props 與固定店員仍重用 desktop 檔案。
+- current portrait runtime 保持 ceiling、backwall、side walls、floor、counter、oven/curtain、container/pastry 分離，沒有 flattened scene。
+- `layout.player` 在兩個 orientation 都是 `cat-landscape`。portrait center 是 `(320,745)`，bounds center `x=50..340 / y=735..806`、scale `.14`、depth `52`。
+- `shopkeeper` 是固定 spawn placement；portrait center 是 `(320,449)`、scale `.15`、depth `29`，由 counter/display 遮擋下半身。
+- domain validator 允許 player 指向 character 或 animal，仍拒絕 item；game interpreter 的 input、bounds、animation 與 depth 路徑依 `layout.player` 運作，不依 character kind 寫死。
 
-player **不是 `RuntimePlacement`**。`src/game/scene.ts` 先依 depth render placements，再獨立 render `layout.player`；mobile task 只應修改 `layouts.portrait.player`，不可新增 player placement，否則會重複繪製 actor。
-
-因此 mobile 目前是 **skeletal，不是 complete**。現況不應被描述為已完成 portrait scene，也不應把現有 desktop placements 猜測性地複製過來。
+player **不是 `RuntimePlacement`**。`src/game/scene.ts` 先依 depth render placements，再獨立 render `layout.player`；不可再新增 cat placement，否則會重複繪製。人物只以固定 shopkeeper placement 出現。
 
 ## 4. Reference paths
 
 | 用途 | 路徑與已知尺寸 | Provenance boundary |
 | --- | --- | --- |
-| Primary mobile reference | `public/goody-cafe-backdrop-mobile.png`（`1086x1448`） | visual reference；不是 flattened runtime scene |
-| Secondary screenshot/reference | `public/Codex Image Jul 31, 2026, 08_39_00 AM.png`（`710x1436`） | inferred/user screenshot reference；不是 docs-authoritative |
-| Desktop style reference | `public/goody-cafe-backdrop.png` | style/composition reference |
+| Primary mobile reference | `public/goody-cafe-backdrop-mobile.png`（實檔 `1085x1449`） | visual reference；不是 flattened runtime scene |
+| 舊版 runtime-sized mobile concept | `public/goody-cafe-mobile-scene-concept.png`（`1086x1448`） | secondary composition reference；不是目前 `390x844` runtime world，也不是 flattened runtime scene |
 | Project style reference | `public/og.png` | style reference |
 | Desktop scene concept | `public/goody-cafe-desktop-scene-concept.png` | style/composition reference |
 
@@ -66,7 +62,7 @@ Reference images never become the flattened final runtime scene。runtime 必須
 可複製的 compact prompt：
 
 ```text
-你是 Goody Pâtisserie 的 8-bit scene layout reviewer。請只根據我上傳的 current portrait 390x844 screenshot 與 mobile reference，提出可直接實作的 portrait plan。對每個 wall/floor/counter/container/11 pastries/calendar/menu/player（`layout.player`，不是 RuntimePlacement）/cat/stool/actor，輸出：visible pixel bbox、normalized center x/y（相對 1086x1448 world）、scale、integer depth、occlusion order、pastry row/column。標記哪些是 reuse、哪些需要 mobile-specific transparent asset。不要提供泛泛風格建議，不要改 desktop geometry，不要把 screenshot 或 reference 做成 flattened final scene；若無法確認請標為 UNKNOWN。
+你是 Goody Pâtisserie 的 8-bit scene layout reviewer。請只根據我上傳的 current portrait 390x844 screenshot 與 mobile reference，提出可直接實作的 portrait plan。貓是唯一 `layout.player`；人物是固定 shopkeeper placement。對每個 wall/floor/counter/container/11 pastries/calendar/menu/cat/stool/shopkeeper，輸出：visible pixel bbox、normalized center x/y（相對 390x844 world）、scale、integer depth、occlusion order、pastry row/column。標記哪些是 reuse、哪些需要 mobile-specific transparent asset。不要提供泛泛風格建議，不要改 desktop geometry，不要把 screenshot 或 reference 做成 flattened final scene；若無法確認請標為 UNKNOWN。
 ``` 
 
 ## 6. Desktop contracts to preserve
@@ -76,7 +72,7 @@ Portrait work 不能改寫或回推下列 desktop contract：
 - desktop walls/floor 使用目前 projective geometry；同一牆面 local plane 與 floor mesh 的 mapping 保持不變。
 - baked side props 以普通 sprite/image 顯示；方向由已核准的可見厚度決定，不由 filename 推斷；runtime 不得再次套 homography。
 - 11 個 pastry 共用 `256x256` canvas、anchor `x=.5 / y=.859375`（`x128`）、baseline `y=220`；真實物件尺寸、row gaps、top 5 / bottom 6 的 approved hierarchy 要保留；desktop placement scale 是 `.34`。
-- character 在 counter 後方，腿不可露出；player 的 8-frame sheet 分成 idle frames `0-3` 與 moving frames `4-7`；cat 在前景，idle loop 使用全部 8 frames。
+- shopkeeper 在 counter 後方固定不動，腿不可露出；cat 是唯一 player，在前景使用全部 8 frames 的 idle loop。
 - desktop clipboard 位於 calendar 左側、垂直掛放；top clip 固定 cream paper，紙面有稀疏 lines。
 - Calendar/menu 的 click、`C`/`M` interaction 與現有 nearby `E` interaction（`src/game/scene.ts` 的 nearest trigger），以及 modal 開啟時 input freeze、關閉後恢復，都要保留。
 
@@ -86,7 +82,7 @@ Portrait work 不能改寫或回推下列 desktop contract：
 
 建議依以下順序實作，每步完成後保存可讀的 diff 與驗證證據：
 
-1. inventory 目前空缺的 portrait placements（appliances、display、pastries、calendar、menu、cat、stools、structural layers），確認其 spawn/action identity；player 只記在 `layouts.portrait.player`，不是 placement。
+1. inventory portrait placements（appliances、display、pastries、calendar、menu、shopkeeper、stools、structural layers），確認其 spawn/action identity；cat player 只記在 `layouts.portrait.player`，不是 placement。
 2. 完成第 5 節 Pro plan，逐項標記 source truth、approved contract 或 recommendation。
 3. 對每個 asset 決定 reuse 現有 version，或建立 mobile-specific、versioned asset；在 placement 引用前，確認它已存在於 `RuntimeExperience.assets`／released manifest assets，並有 `public/imagegen/asset-manifest.json` delivery entry；否則 validator 會拒絕，或 loader 不會載入。不得先生成再猜 class。
 4. 增加 portrait structural layers、containers、contents、actors、animals，並使 container/content 分離；不可做 flattened scene。
@@ -95,12 +91,13 @@ Portrait work 不能改寫或回推下列 desktop contract：
 
 Structural strategy 可以混用：ordinary reusable independent sprites、mobile-specific transparent layers，以及 separately specified portrait projections 可以同時存在。不得重用 desktop projection profile，也不得讓同一素材被 double-project。
 
-## 8. Recommended mobile depth/occlusion strategy（recommendation，非現況）
+## 8. Current mobile depth/occlusion contract
 
-以下是待 Pro 與 browser 驗證的 recommendation：
+目前已以 source tests 與 live browser 驗證：
 
-- player 保持完整 8-frame sheet（idle `0-3`、moving `4-7`）；以 depth 放在 counter 後方，讓 counter base/top 遮住腿部，絕不裁切 actor art 來假造遮擋。
-- counter base/top 在 actor 前；display/pastry 放在正確的 stage row；cat 在前景。
+- ceiling/backwall 使用 direct depth `0/1`；portrait side walls 使用 projective clip depth `3`，floor 使用 projective clip depth `2`；fixture、fridge、oven、curtain 使用 `12/15/15/16`。Side wall/floor placement neutral position `.5/.5`、scale `1`；projective profiles subdivisions `4x16`，無 guides。
+- shopkeeper depth `29`，mobile counter v3 base/top depth `30/31`；canvas `978x486`/`1014x132`，scale `1/3`，logical bboxes base `[32,495,326,162]`、top `[26,463,338,44]`；人物固定在 counter 後方，沒有裁切 actor art。
+- display/pastry 位於 depth `33/34`；六張 stools 是 depth `40`；cat player 是 depth `52`，在前景地板活動。
 - calendar/menu 維持可 spawn 的 placement 與既有 interaction；若 portrait 新增 placement，click target 即可在同一 spawn identity 上啟用；nearby `E` 仍由 scene nearest trigger 處理。
 - 同一 row 的 pastries 不重疊，容器與 pastry 分層；遮擋使用 ordered depth/containers，不在 asset PNG 烘入 pastry。
 
@@ -108,7 +105,7 @@ Structural strategy 可以混用：ordinary reusable independent sprites、mobil
 
 ## 9. Image generation details
 
-先依 `docs/GOODY-8BIT-ART-WORKFLOW.md`：若 `goody-8bit-art` skill 存在，先讀完並使用；若不可用，明確記錄後使用 global `imagegen` built-in default。兩者都先檢查三張 style refs：`public/goody-cafe-backdrop.png`、`public/goody-cafe-backdrop-mobile.png`、`public/og.png`。沒有明確使用者授權時，不得使用 CLI fallback。生成結果處理為：
+先依 `docs/GOODY-8BIT-ART-WORKFLOW.md`：若 `goody-8bit-art` skill 存在，先讀完並使用；若不可用，明確記錄後使用 global `imagegen` built-in default。兩者都先檢查現存 style refs：`public/goody-cafe-backdrop-mobile.png`、`public/goody-cafe-mobile-scene-concept.png`、`public/goody-cafe-desktop-scene-concept.png`、`public/og.png`。沒有明確使用者授權時，不得使用 CLI fallback。生成結果處理為：
 
 1. source 從 `$CODEX_HOME/generated_images` 複製到本次擁有的 staging 目錄；保持原始 reference 不變。
 2. 使用 flat `#ff00ff` chroma，尤其是 teal/green-rich transparent assets；移除 chroma、despill、safe trim。
@@ -138,8 +135,12 @@ Single isolated subject on a flat #ff00ff chroma background for keying. No wall,
 - `.codex-art-staging/process-tabby-cat.mjs`：讀取 `2048x768`（4x2）tabby sheet，逐 frame trim、nearest-neighbor resize、baseline registration，輸出 `512x384` frame grid 的 8-frame cat sheet。
 - `.codex-art-staging/knife/process-knife.cjs`：移除 magenta/despill，裁切 source alpha bounds，nearest-neighbor fitted bbox `left=12, top=20, width=197, height=145`，置入 `220x170` knife-rack canvas。
 - `.codex-art-staging/clipboard/normalize-clipboard.mjs`：移除 magenta，將 visible subject resize 為 `237x385`，置於 `384x448` canvas 的 `(74,28)`，輸出 normalized clipboard。
+- `.codex-art-staging/mobile-portrait/process-mobile-portrait-assets.mjs`：舊版 schema v6 pipeline；讀取九個 mobile source/chroma outputs，transparent asset 先由 global `imagegen` chroma helper 完成 border key、soft matte 與 despill，再以 alpha threshold `64` 取得 subject bbox、nearest-neighbor normalize 到 v1 exact canvas；ceiling/backwall 依 top edge crop，舊 floor 依 exact canvas resize。其 v1 side-wall/floor outputs 只保留 delivery history。
+- `.codex-art-staging/mobile-portrait/process-mobile-portrait-v2-assets.mjs`：舊 schema v7 side-wall/floor normalization；outputs 現只保留 immutable delivery history。目前 schema v9 使用 canonical flat wall/floor projection，counter v3 files 由 root-owned versioned delivery 提供，runtime 不得重新啟用 mobile side-wall/floor v3 ids。
+- `.codex-art-staging/mobile-portrait/process-mobile-portrait-v3-assets.mjs`：產生 ceiling v2、backwall v2，以及只保留 delivery history 的 baked side-wall/floor v3、counter v2 exact canvases。
+- `.codex-art-staging/mobile-portrait/process-mobile-portrait-v4-assets.mjs`：將 reference-matched counter top/base v3 chroma-key sources 去背後，以 alpha bbox 與 nearest-neighbor normalize 為 active `1014x132`／`978x486` files。
 
-新的 mobile asset 經 Pro discovery 後，可能需要新的 deterministic script；不可假設上述 scripts 可直接泛化到 mobile canvas、actor 或 container。
+新的 mobile asset 若規格改變，必須另建 versioned class/file 或更新 deterministic script；不可假設其他既有 scripts 可直接泛化到 mobile canvas、actor 或 container。
 
 ## 11. Per-asset rules 與 prompt templates
 
@@ -174,7 +175,8 @@ Clipboard: [common style block] [isolated sprite block] Vertical wall clipboard,
 - 每個 orientation 擁有自己的 placements；portrait 可針對同一 spawn 使用不同 normalized position、scale、depth。
 - `type: "spawn"` 可保留 spawn identity，同時用 optional `placement.assetId` override 指定同 kind 的 layout-specific visual asset；不要複製或重新命名 content schema。
 - 每個 reuse/new mobile asset 都必須先存在 `RuntimeExperience.assets` 及 released manifest assets，並在 `public/imagegen/asset-manifest.json` 有 delivery entry，placement 才能引用；缺少 asset 時 validator 會拒絕，或 runtime loader 不會載入。
-- 保留 spawn ids：`calendar`、`menu-board`、`cat-landscape`，以及 11 個 pastry ids（`pandan-pearl-sugar-choux`、`pandan-thai-tea-saint-honore`、`pandan-thai-tea-saint-honore-6-inch`、`pistachio-cherry-tart`、`muscat-white-wine`、`pandan-thai-tea-cake-roll`、`vanilla-basque-cheesecake-slice`、`vanilla-basque-cheesecake-6-inch`、`pandan-madeleine-2-pack`、`pistachio-cherry-dacquoise`、`vanilla-canele`）。
+- Phaser 初次只 preload 目前 orientation 的 placement、player、fallback 與 weather assets；轉向時才載入另一個 orientation 缺少的檔案，完成後重建 layout。不得為了 rotation support 讓 desktop 首屏預載 mobile-only PNG。
+- 保留 spawn ids：`shopkeeper`、`calendar`、`menu-board`、`cat-landscape`，以及 11 個 pastry ids（`pandan-pearl-sugar-choux`、`pandan-thai-tea-saint-honore`、`pandan-thai-tea-saint-honore-6-inch`、`pistachio-cherry-tart`、`muscat-white-wine`、`pandan-thai-tea-cake-roll`、`vanilla-basque-cheesecake-slice`、`vanilla-basque-cheesecake-6-inch`、`pandan-madeleine-2-pack`、`pistachio-cherry-dacquoise`、`vanilla-canele`）。
 - 保留既有 Calendar/Menu click interactions、`C`/`M` keyboard keys 與 nearby `E` trigger；React modal/input gate 的 freeze/restore contract 不變。手機 touch controls 也必須驗證 movement press/release、touch interaction 與 modal freeze/restore。
 - 加入 portrait placement 才會使該 spawn 在 portrait 具有 render/click target；沒有 placement 不代表要在 game code 寫 hard-coded fallback。
 - `asset-manifest.json` 的 `intendedDisplay.portrait` 若已有 portrait metadata，或 asset 實際用於 portrait，必須符合 actual placement scale/canvas；預先規劃 metadata 可以在尚無 current placement 時存在，但不能當作已 render 的 proof。
@@ -208,13 +210,13 @@ tests/domain/runtime-projection.test.ts
 - tests、typecheck、lint 及 `git diff --check` 通過；執行 `npm run build`，並執行 `npm run deploy:app:build` 產生 OpenNext Worker bundle。
 - desktop browser `1440x900` canonical QA 通過，並以 approved `1536x1024` regression screenshot 比對不變；mobile browser `390x844` 及至少一個較寬 phone viewport 都通過；viewport cover、無 stretch、document 不 overflow。
 - scene 保持 reference 的整體比例；所有新增 runtime image 都由 `/imagegen/` 載入。
-- player 在 counter 後方，無 feet leak；counter、display、pastry、cat 的 depth/occlusion 正確。
+- shopkeeper 固定在 counter 後方且無 feet leak；只有 cat player 可移動；counter、display、pastry、cat 的 depth/occlusion 正確。
 - 11 個 pastries 皆顯示，realistic scale、row alignment、無 overlap；container/content 可獨立替換。
 - calendar/menu 可見；click、`C`/`M` 及 nearby `E` 可開 modal，modal 期間 input freeze，關閉後 restore；手機 touch movement 的 press/release 與 touch interaction 也通過。
-- player 8-frame sheet 的 idle `0-3` 與 moving `4-7`、cat 全部 8-frame idle loop 都有可觀察 live frame change；rotation/orientation 不需 reload。
+- cat 全部 8-frame idle loop 有可觀察 live frame change；shopkeeper 維持固定 idle；rotation/orientation 不需 reload。
 - browser console/page errors 為零。
 
-Mobile browser QA 是 future mobile task 的必要條件；desktop task 期間刻意跳過，不能用 source tests 代替。
+目前 schema v9 已完成 live browser proof：`390x844` 精確基準、`430x932` 等比置中 cover、無 reload 的 portrait/landscape rotation、desktop `1440x900` 回歸、C/M modal 與關閉後 focus restore 均通過；console 沒有 page error。Source tests 仍保留這些幾何與互動 contract，不能取代後續視覺改動的 browser QA。
 
 ## 15. Stop conditions / non-goals
 

@@ -1,14 +1,166 @@
 {
   "schemaVersion": 1,
-  "assetSpecVersion": 5,
+  "assetSpecVersion": 9,
   "assets": [
+    {
+      "id": "mobile-ceiling-backwall",
+      "file": "/imagegen/goody-mobile-ceiling-backwall-v1.png",
+      "class": "scene-portrait-ceiling-backwall",
+      "canvas": [1086, 809],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [1086, 809] }
+    },
+    {
+      "id": "mobile-side-wall",
+      "file": "/imagegen/goody-mobile-side-wall-v1.png",
+      "class": "scene-portrait-side-wall",
+      "canvas": [99, 930],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [99, 930] }
+    },
+    {
+      "id": "mobile-floor",
+      "file": "/imagegen/goody-mobile-floor-v1.png",
+      "class": "scene-portrait-floor",
+      "canvas": [1086, 349],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [1086, 349] }
+    },
+    {
+      "id": "mobile-side-wall-v2",
+      "file": "/imagegen/goody-mobile-side-wall-v2.png",
+      "class": "scene-portrait-side-wall-v2",
+      "canvas": [99, 998],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [99, 998] }
+    },
+    {
+      "id": "mobile-floor-v2",
+      "file": "/imagegen/goody-mobile-floor-v2.png",
+      "class": "scene-portrait-floor-v2",
+      "canvas": [1086, 1251],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [1086, 1251] }
+    },
+    {
+      "id": "mobile-ceiling-v2",
+      "file": "/imagegen/goody-mobile-ceiling-v2.png",
+      "class": "scene-portrait-ceiling-v2",
+      "canvas": [1170, 252],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [390, 84] }
+    },
+    {
+      "id": "mobile-backwall-v2",
+      "file": "/imagegen/goody-mobile-backwall-v2.png",
+      "class": "scene-portrait-backwall-v2",
+      "canvas": [918, 1467],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [306, 489] }
+    },
+    {
+      "id": "mobile-side-wall-v3",
+      "file": "/imagegen/goody-mobile-side-wall-v3.png",
+      "class": "scene-portrait-side-wall-v3",
+      "canvas": [165, 1770],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [55, 590] }
+    },
+    {
+      "id": "mobile-floor-v3",
+      "file": "/imagegen/goody-mobile-floor-v3.png",
+      "class": "scene-portrait-floor-v3",
+      "canvas": [1170, 843],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [390, 281] }
+    },
+    {
+      "id": "mobile-ceiling-fixture",
+      "file": "/imagegen/goody-mobile-ceiling-fixture-v1.png",
+      "class": "item-wall-portrait-fixture",
+      "canvas": [417, 360],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [187.65, 162] }
+    },
+    {
+      "id": "mobile-fridge",
+      "file": "/imagegen/goody-mobile-fridge-v1.png",
+      "class": "appliance-portrait-fridge",
+      "canvas": [215, 364],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [77.4, 131.04] }
+    },
+    {
+      "id": "mobile-oven",
+      "file": "/imagegen/goody-mobile-oven-v1.png",
+      "class": "appliance-portrait-oven",
+      "canvas": [150, 450],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [54, 162] }
+    },
+    {
+      "id": "mobile-oven-curtain",
+      "file": "/imagegen/goody-mobile-oven-curtain-v1.png",
+      "class": "item-portrait-curtain",
+      "canvas": [300, 452],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [118.8, 178.992] }
+    },
+    {
+      "id": "mobile-counter-base",
+      "file": "/imagegen/goody-mobile-counter-base-v1.png",
+      "class": "counter-base-portrait",
+      "canvas": [980, 301],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [980, 301] }
+    },
+    {
+      "id": "mobile-counter-top",
+      "file": "/imagegen/goody-mobile-counter-top-v1.png",
+      "class": "counter-top-portrait",
+      "canvas": [948, 83],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [948, 83] }
+    },
+    {
+      "id": "mobile-counter-base-v2",
+      "file": "/imagegen/goody-mobile-counter-base-v2.png",
+      "class": "counter-base-portrait-v2",
+      "canvas": [978, 486],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [326, 162] }
+    },
+    {
+      "id": "mobile-counter-top-v2",
+      "file": "/imagegen/goody-mobile-counter-top-v2.png",
+      "class": "counter-top-portrait-v2",
+      "canvas": [1014, 132],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [338, 44] }
+    },
+    {
+      "id": "mobile-counter-base-v3",
+      "file": "/imagegen/goody-mobile-counter-base-v3.png",
+      "class": "counter-base-portrait-v3",
+      "canvas": [978, 486],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [326, 162] }
+    },
+    {
+      "id": "mobile-counter-top-v3",
+      "file": "/imagegen/goody-mobile-counter-top-v3.png",
+      "class": "counter-top-portrait-v3",
+      "canvas": [1014, 132],
+      "anchor": [0.5, 0.5],
+      "intendedDisplay": { "landscape": null, "portrait": [338, 44] }
+    },
     {
       "id": "concept-side-wall-canonical-v2",
       "file": "/imagegen/goody-side-wall-canonical-v2.png",
       "class": "scene-projective-wall",
       "canvas": [384, 1024],
       "anchor": [0.5, 0.5],
-      "intendedDisplay": { "landscape": [384, 1024], "portrait": null }
+      "intendedDisplay": { "landscape": [384, 1024], "portrait": [55, 590] }
     },
     {
       "id": "concept-floor-canonical-v3",
@@ -16,7 +168,7 @@
       "class": "scene-projective-floor-16x8",
       "canvas": [1536, 512],
       "anchor": [0.5, 0.5],
-      "intendedDisplay": { "landscape": [1536, 512], "portrait": [1536, 512] }
+      "intendedDisplay": { "landscape": [1536, 512], "portrait": [390, 281] }
     },
     {
       "id": "concept-side-prop-left-pan-pair-perspective",
@@ -24,7 +176,7 @@
       "class": "side-prop-pan-pair-perspective",
       "canvas": [220, 300],
       "anchor": [0.5, 0.54],
-      "intendedDisplay": { "landscape": [132, 180], "portrait": null }
+      "intendedDisplay": { "landscape": [132, 180], "portrait": [47.4034, 64.641] }
     },
     {
       "id": "concept-side-prop-left-utensil-rail-perspective",
@@ -32,7 +184,7 @@
       "class": "side-prop-utensil-rail-perspective",
       "canvas": [260, 250],
       "anchor": [0.5, 0.56],
-      "intendedDisplay": { "landscape": [143, 137.5], "portrait": null }
+      "intendedDisplay": { "landscape": [143, 137.5], "portrait": [51.3526, 49.3775] }
     },
     {
       "id": "concept-side-prop-left-magnetic-knife-rack-perspective",
@@ -40,7 +192,7 @@
       "class": "side-prop-magnetic-knife-rack-perspective",
       "canvas": [220, 170],
       "anchor": [0.5, 0.3411764706],
-      "intendedDisplay": { "landscape": [110, 85], "portrait": null }
+      "intendedDisplay": { "landscape": [110, 85], "portrait": [39.5032, 30.5252] }
     },
     {
       "id": "concept-side-prop-right-tokyo-frame-perspective",
@@ -48,7 +200,7 @@
       "class": "side-prop-frame-perspective",
       "canvas": [160, 200],
       "anchor": [0.5, 0.5],
-      "intendedDisplay": { "landscape": [76.8, 96], "portrait": null }
+      "intendedDisplay": { "landscape": [76.8, 96], "portrait": [27.5952, 34.494] }
     },
     {
       "id": "concept-side-prop-right-melbourne-frame-perspective",
@@ -56,7 +208,7 @@
       "class": "side-prop-frame-perspective",
       "canvas": [160, 200],
       "anchor": [0.5, 0.5],
-      "intendedDisplay": { "landscape": [76.8, 96], "portrait": null }
+      "intendedDisplay": { "landscape": [76.8, 96], "portrait": [27.5952, 34.494] }
     },
     {
       "id": "concept-side-prop-right-plant-shelf-perspective",
@@ -64,7 +216,7 @@
       "class": "side-prop-plant-shelf-perspective",
       "canvas": [300, 280],
       "anchor": [0.5, 0.86],
-      "intendedDisplay": { "landscape": [135, 126], "portrait": null }
+      "intendedDisplay": { "landscape": [135, 126], "portrait": [48.48, 45.248] }
     },
     {
       "id": "oven-tray",
@@ -72,7 +224,7 @@
       "class": "tray-wide",
       "canvas": [512, 256],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [143.36, 71.68], "portrait": [153.6, 76.8] }
+      "intendedDisplay": { "landscape": [143.36, 71.68], "portrait": null }
     },
     {
       "id": "pastry-pandan-pearl-sugar-choux-landscape-v2",
@@ -80,7 +232,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-pandan-thai-tea-saint-honore-landscape-v2",
@@ -88,7 +240,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-pandan-thai-tea-saint-honore-6-inch-landscape-v2",
@@ -96,7 +248,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-pistachio-cherry-tart-landscape-v2",
@@ -104,7 +256,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-muscat-white-wine-landscape-v2",
@@ -112,7 +264,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-pandan-thai-tea-cake-roll-landscape-v2",
@@ -120,7 +272,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-vanilla-basque-cheesecake-slice-landscape-v2",
@@ -128,7 +280,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-vanilla-basque-cheesecake-6-inch-landscape-v2",
@@ -136,7 +288,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-pandan-madeleine-2-pack-landscape-v2",
@@ -144,7 +296,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-pistachio-cherry-dacquoise-landscape-v2",
@@ -152,7 +304,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "pastry-vanilla-canele-landscape-v2",
@@ -160,7 +312,7 @@
       "class": "pastry-display-256",
       "canvas": [256, 256],
       "anchor": [0.5, 0.859375],
-      "intendedDisplay": { "landscape": [87.04, 87.04] }
+      "intendedDisplay": { "landscape": [87.04, 87.04], "portrait": [20.48, 20.48] }
     },
     {
       "id": "shopkeeper-animated",
@@ -170,7 +322,7 @@
       "frame": [512, 768],
       "frames": 8,
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [414.72, 622.08], "portrait": [138.24, 207.36] }
+      "intendedDisplay": { "landscape": [414.72, 622.08], "portrait": [76.8, 115.2] }
     },
     {
       "id": "cat-animated",
@@ -180,7 +332,7 @@
       "frame": [512, 384],
       "frames": 8,
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [184.32, 138.24], "portrait": null }
+      "intendedDisplay": { "landscape": [184.32, 138.24], "portrait": [71.68, 53.76] }
     },
     {
       "id": "calendar-sprite",
@@ -188,7 +340,7 @@
       "class": "item-wall",
       "canvas": [384, 448],
       "anchor": [0.5, 0.5],
-      "intendedDisplay": { "landscape": [69.12, 80.64], "portrait": [76.8, 89.6] }
+      "intendedDisplay": { "landscape": [69.12, 80.64], "portrait": [22.08, 25.76] }
     },
     {
       "id": "menu-clipboard-landscape",
@@ -196,7 +348,7 @@
       "class": "item-wall",
       "canvas": [384, 448],
       "anchor": [0.5, 0.5],
-      "intendedDisplay": { "landscape": [69.12, 80.64], "portrait": null }
+      "intendedDisplay": { "landscape": [69.12, 80.64], "portrait": [28.1472, 32.8384] }
     },
     {
       "id": "concept-wall-center",
@@ -204,7 +356,7 @@
       "class": "scene-landscape-layer",
       "canvas": [1536, 1024],
       "anchor": [0.5, 0.5],
-      "intendedDisplay": { "landscape": [1536, 1024], "portrait": [1536, 1024] }
+      "intendedDisplay": { "landscape": [1536, 1024], "portrait": null }
     },
     {
       "id": "concept-fridge",
@@ -228,7 +380,7 @@
       "class": "counter-base",
       "canvas": [1536, 384],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [1536, 384], "portrait": [1536, 384] }
+      "intendedDisplay": { "landscape": [1536, 384], "portrait": null }
     },
     {
       "id": "concept-counter-top",
@@ -244,7 +396,7 @@
       "class": "counter-display",
       "canvas": [512, 384],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [512, 384], "portrait": null }
+      "intendedDisplay": { "landscape": [512, 384], "portrait": [161.792, 121.344] }
     },
     {
       "id": "concept-stool",
@@ -252,7 +404,7 @@
       "class": "item-floor",
       "canvas": [384, 512],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [188.16, 250.88], "portrait": null }
+      "intendedDisplay": { "landscape": [188.16, 250.88], "portrait": [107.52, 143.36] }
     },
     {
       "id": "concept-mixer",
@@ -260,7 +412,7 @@
       "class": "item-floor",
       "canvas": [384, 512],
       "anchor": [0.5, 1],
-      "intendedDisplay": { "landscape": [192, 256], "portrait": null }
+      "intendedDisplay": { "landscape": [192, 256], "portrait": [61.44, 81.92] }
     },
     {
       "id": "concept-oven-curtain",

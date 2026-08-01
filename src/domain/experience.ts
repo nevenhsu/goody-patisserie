@@ -658,7 +658,9 @@ export function validateRuntimeExperience(input: unknown): RuntimeExperienceVali
       add(issues, `${path}.player`, "required", "player spawn is required");
     } else {
       const player = spawnsById.get(layout.player.spawnId);
-      if (!player || player.kind !== "character") add(issues, `${path}.player.spawnId`, "reference", "player must reference a character spawn");
+      if (!player || (player.kind !== "character" && player.kind !== "animal")) {
+        add(issues, `${path}.player.spawnId`, "reference", "player must reference a character or animal spawn");
+      }
       validatePoint(layout.player.position, `${path}.player.position`, issues);
       validateBounds(layout.player.movementBounds, `${path}.player.movementBounds`, issues);
       if (!(layout.player.scale > 0)) add(issues, `${path}.player.scale`, "range", "player scale must be positive");

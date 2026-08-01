@@ -99,6 +99,17 @@ test("spawn placements may select a layout-specific asset of the same kind", asy
   assert.equal(validateRuntimeExperience(value).valid, false);
 });
 
+test("layout player accepts animal spawns but rejects item spawns", async () => {
+  const value = copy(await getRuntimeExperience());
+  value.layouts.landscape.player = { ...value.layouts.landscape.player, spawnId: "cat-landscape" };
+  assert.equal(validateRuntimeExperience(value).valid, true);
+
+  value.layouts.landscape.player = { ...value.layouts.landscape.player, spawnId: "calendar" };
+  const result = validateRuntimeExperience(value);
+  assert.equal(result.valid, false);
+  assert.ok(result.issues.some((issue) => issue.path === "layouts.landscape.player.spawnId" && issue.code === "reference"));
+});
+
 test("desktop demo composes an empty cabinet and eleven swappable pastry assets", async () => {
   const value = copy(await getRuntimeExperience());
   const assets = new Map(value.assets.map((asset) => [asset.id, asset]));
